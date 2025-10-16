@@ -16,17 +16,19 @@ time_generated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 
 # words table, the word id is primary key
 CREATE TABLE Words (
-word_id INT PRIMARY KEY,
-word VARCHAR(255),
-word_frequency INT NOT NULL,
+word_id INT AUTO_INCREMENT PRIMARY KEY,
+word VARCHAR(255) UNIQUE,
+word_frequency INT NOT NULL DEFAULT 0,
 starting_word_occurences INT DEFAULT 0,
 ending_word_occurences INT DEFAULT 0
 );
 
 # relationships table, current word and subsequent word combo is a composite primary key
 CREATE TABLE Relationships (
-current_word VARCHAR(255) NOT NULL,
-next_word VARCHAR(255) NOT NULL,
-PRIMARY KEY (current_word, next_word),
-combination_count INT DEFAULT 0 
+current_word_id INT NOT NULL,
+next_word_id INT NOT NULL,
+combination_count INT DEFAULT 0,
+PRIMARY KEY (current_word_id, next_word_id),
+FOREIGN KEY (current_word_id) REFERENCES Words(word_id) ON DELETE CASCADE,
+FOREIGN KEY (next_word_id) REFERENCES Words(word_id) ON DELETE CASCADE
 );
