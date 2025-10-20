@@ -98,7 +98,7 @@ public class TextPreProcessor {
                 String next = sentence.get(i + 1);
                 // TODO: Count EOS token as apart of the DB
                 // if the current token is </s> skip to next iteration
-                if (current.equals("</s>")) continue;
+                //if (current.equals("</s>")) continue;
 
                 // if isStart is true then current word is first token
                 boolean isStart = (i == 0);
@@ -118,25 +118,25 @@ public class TextPreProcessor {
                 // if there is another word after the current one, we need to make sure it's recorded in the db,
                 // since the relationships table has a reference to the next_word_id
                 // TODO: count EOS token
-                if (!next.equals("</s>")) {
-                    // set first parameter to next word, dont pass in anything else
-                    insertWordStmt.setString(1, next);
-                    insertWordStmt.setInt(2, 0);
-                    insertWordStmt.setInt(3, 0);
-                    insertWordStmt.executeUpdate();
-                }
+                //if (!next.equals("</s>")) {
+                // set first parameter to next word, dont pass in anything else
+                insertWordStmt.setString(1, next);
+                insertWordStmt.setInt(2, 0);
+                insertWordStmt.setInt(3, 0);
+                insertWordStmt.executeUpdate();
 
                 // To update relationship table, we need to id of current word and next word
                 int currentId = getWordId(current, getWordIdStmt);
                 // TODO: count EOS token
-                int nextId = next.equals("</s>") ? -1 : getWordId(next, getWordIdStmt);
+                //int nextId = next.equals("</s>") ? -1 : getWordId(next, getWordIdStmt);
+                int nextId = getWordId(next, getWordIdStmt);
 
                 // If there is a next word, then insert current id and next id, if not then skip
-                if (nextId != -1) {
+                //if (nextId != -1) {
                     insertRelStmt.setInt(1, currentId);
                     insertRelStmt.setInt(2, nextId);
                     insertRelStmt.executeUpdate();
-                }
+                //}
             }
         }
     }
