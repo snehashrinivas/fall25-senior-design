@@ -264,9 +264,58 @@ public class TextPreProcessor {
  * @return           int of the number of words added to the database
  * Written by Andersen Breyel
  */
-private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLException {
+//private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLException {
+
+    private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLException {
+        int count = 0;
+        ArrayList<String> currentSentence = new ArrayList<>();
+
+        // Read continuously — Scanner.next() already splits on whitespace (spaces, tabs, newlines)
+        while (textFile.hasNext()) {
+            String rawWord = textFile.next().toLowerCase();
+
+            // Clean the token — remove punctuation, accents, and symbols
+            String cleanedWord = cleanWord(rawWord, asciiFile);
+
+            // Skip empty or invalid tokens after cleaning
+            if (cleanedWord == null || cleanedWord.isEmpty()) continue;
+
+            // Check last character for end-of-sentence punctuation
+            char lastChar = cleanedWord.charAt(cleanedWord.length() - 1);
+
+            if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
+                // Trim punctuation
+                String trimmed = cleanedWord.substring(0, cleanedWord.length() - 1);
+                if (!trimmed.isEmpty()) currentSentence.add(trimmed);
+
+                // Add EOS token
+                currentSentence.add("</s>");
+
+                // Update database
+                countWords(currentSentence);
+                count += currentSentence.size();
+
+                // Reset for next sentence
+                currentSentence.clear();
+            } else {
+                currentSentence.add(cleanedWord);
+                count++;
+            }
+        }
+
+        // Handle leftover tokens (if no punctuation at end of file)
+        if (!currentSentence.isEmpty()) {
+            currentSentence.add("</s>");
+            countWords(currentSentence);
+            count += currentSentence.size();
+            currentSentence.clear();
+        }
+
+        return count;
+    }
+
     // Counter to keep track of number of words being added into the database from this document
-    int count = 0;
+    /*int count = 0;
     // ArrayList to keep track of the words in the current sentence
     ArrayList<String> currentSentence = new ArrayList<>();
     // Loop through text file, token by token
@@ -278,7 +327,7 @@ private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLExc
         // If the new word is a miscellaneous symbol discard it
         if (checkIfMiscellaneous(newWord.charAt(0))) {
             continue;
-        }*/
+        }
         // Clean the word, removing miscellaneous symbols and converting accents
         String cleanedWord = cleanWord(newWord, asciiFile);
         // Use final char to check if word is the end of the sentence
@@ -289,7 +338,7 @@ private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLExc
             currentSentence.add(cleanedWord.substring(0, cleanedWord.length() - 2));
             currentSentence.add(finalChar);
             currentSentence.add("</s>");
-            countWords(currentSentence);
+            countWords(currentSentence); // we might indicate class
             count += 3;
             currentSentence.clear();
             // To account for text files without punctuation, if the loop makes it to the end without running into eos punctuation
@@ -305,7 +354,7 @@ private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLExc
             count ++;
         }
     }
-    return count;
+    return count;*/
 }
 
 /**
@@ -315,7 +364,7 @@ private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLExc
  * @param args commands line arguments provided by user
  * Written by Khushi Dubey
  */
-public static void main(String[] args) throws SQLException {
+/*public static void main(String[] args) throws SQLException {
         // initialize flag to determine whether program needs to continue accepting file names
     boolean keepReceiving = true;
 
@@ -355,4 +404,5 @@ public static void main(String[] args) throws SQLException {
     asciiFile.close();
     System.out.println("Exiting program...");
     }
-}
+}*/
+

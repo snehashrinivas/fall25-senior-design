@@ -4,22 +4,24 @@ import java.util.ArrayList;
 
 public class DatabaseManager {
     private static Connection conn;
-    private final String url;
-    private final String username;
-    private final String password;
 
-    public DatabaseManager(String url, String username, String password, Connection conn) {
-        this.url = url;
+    // Prepared statements for reuse
+    private PreparedStatement insertWordStmt;
+    private PreparedStatement getWordIdStmt;
+    private PreparedStatement insertRelStmt;
+
+    public DatabaseManager(Connection conn) {//String url, String username, String password, Connection conn) {
+       /* this.url = url;
         this.username = username;
-        this.password = password;
+        this.password = password;*/
         this.conn = conn;
     }
 
     private void connect() throws SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            String strConnect = null;
-            conn = DriverManager.getConnection(strConnect, "root", "SQL1");
+            String strConnect = "jdbc:mysql://localhost:3306/SentenceBuilder";
+            conn = DriverManager.getConnection(strConnect, "root", "your_new_password");
         } catch (ClassNotFoundException ex) {
             throw new SQLException("MySQL JDBC Driver not found: " + ex.getMessage());
         } catch (SQLException ex) {
@@ -127,7 +129,7 @@ public class DatabaseManager {
             for (int i = 0; i < sentence.size() - 1; i++) {
                 String current = sentence.get(i);
                 String next = sentence.get(i + 1);
-                // TODO: Count EOS token as apart of the DB
+
                 // if the current token is </s> skip to next iteration
                 //if (current.equals("</s>")) continue;
 
@@ -148,7 +150,7 @@ public class DatabaseManager {
 
                 // if there is another word after the current one, we need to make sure it's recorded in the db,
                 // since the relationships table has a reference to the next_word_id
-                // TODO: count EOS token
+
                 //if (!next.equals("</s>")) {
                 // set first parameter to next word, dont pass in anything else
                 insertWordStmt.setString(1, next);
@@ -158,7 +160,7 @@ public class DatabaseManager {
 
                 // To update relationship table, we need to id of current word and next word
                 int currentId = getWordId(current, getWordIdStmt);
-                // TODO: count EOS token
+
                 //int nextId = next.equals("</s>") ? -1 : getWordId(next, getWordIdStmt);
                 int nextId = getWordId(next, getWordIdStmt);
 
@@ -171,5 +173,4 @@ public class DatabaseManager {
             }
         }
     }
-
 }
