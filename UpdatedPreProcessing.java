@@ -7,14 +7,20 @@ import java.util.Scanner;
 
         // JDBC connection to database
         private static Connection conn = null;
+        private static DatabaseManager dbManager = null;
 
-        public UpdatedPreProcessing(Connection conn) {
+
+        public UpdatedPreProcessing(Connection conn, DatabaseManager dbManager) {
             UpdatedPreProcessing.conn = conn; // assign to static member
+            UpdatedPreProcessing.dbManager = dbManager;
         }
 
         /**
-         * Returns a Scanner object corresponding to the file at the given location.
-         * File must be in the same folder.
+         * Returns a scanner object corresponding to the file at the given location
+         * File must be in the same folder
+         * @param fileName  String representation of the name of a file in the same GitHub folder
+         * @return          Scanner object of the file at the given location or null if the file can't be found
+         * Written by Andersen Breyel
          */
         private static Scanner importFile(String fileName) {
             try {
@@ -25,79 +31,30 @@ import java.util.Scanner;
             }
         }
 
-        /** Helper function to get word_id of a given word. */
-        private static int getWordId(String word, PreparedStatement stmt) throws SQLException {
-            stmt.setString(1, word);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("word_id");
-                }
-            }
-            throw new SQLException("Word not found: " + word);
-        }
-
-        /** Records words and relationships in the database. */
-        private static void countWords(ArrayList<String> sentence) throws SQLException {
-            if (sentence == null) return;
-
-            String insertWordSQL = """
-            INSERT INTO Words (word, word_frequency, starting_word_occurences, ending_word_occurences)
-            VALUES (?, 1, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                word_frequency = word_frequency + 1,
-                starting_word_occurences = starting_word_occurences + VALUES(starting_word_occurences),
-                ending_word_occurences = ending_word_occurences + VALUES(ending_word_occurences);
-        """;
-
-            String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
-
-            String insertRelationshipSQL = """
-            INSERT INTO Relationships (current_word_id, next_word_id, combination_count)
-            VALUES (?, ?, 1)
-            ON DUPLICATE KEY UPDATE
-                combination_count = combination_count + 1;
-        """;
-
-            try (
-                    PreparedStatement insertWordStmt = conn.prepareStatement(insertWordSQL);
-                    PreparedStatement getWordIdStmt = conn.prepareStatement(getWordIdSQL);
-                    PreparedStatement insertRelStmt = conn.prepareStatement(insertRelationshipSQL)
-            ) {
-                for (int i = 0; i < sentence.size() - 1; i++) {
-                    String current = sentence.get(i);
-                    String next = sentence.get(i + 1);
-
-                    boolean isStart = (i == 0);
-                    boolean isEnd = (next.equals("</s>"));
-
-                    insertWordStmt.setString(1, current);
-                    insertWordStmt.setInt(2, isStart ? 1 : 0);
-                    insertWordStmt.setInt(3, isEnd ? 1 : 0);
-                    insertWordStmt.executeUpdate();
-
-                    insertWordStmt.setString(1, next);
-                    insertWordStmt.setInt(2, 0);
-                    insertWordStmt.setInt(3, 0);
-                    insertWordStmt.executeUpdate();
-
-                    int currentId = getWordId(current, getWordIdStmt);
-                    int nextId = getWordId(next, getWordIdStmt);
-
-                    insertRelStmt.setInt(1, currentId);
-                    insertRelStmt.setInt(2, nextId);
-                    insertRelStmt.executeUpdate();
-                }
-            }
-        }
-
-        /** Checks if a character is non-alphabetic, non-numeric, or non-punctuation. */
+        /**
+         * Check if character is non-alphabetic, non-numerical, or non-punctuation
+         * Passes uppercase, lowercase letters, punctuation, and numbers
+         * Not counting ',' ':' or ';' to not worry about grammatic structure of sentences
+         * @param myChar character being checked
+         * @return preprocessed, lowercase version of input word that contains only digits and alphabetical letters
+         * Written by Khushi Dubey
+         */
         private static boolean checkIfMiscellaneous(char myChar) {
             if (myChar >= 'a' && myChar <= 'z') return false;
             if (myChar == '!' || myChar == '.' || myChar == '?' || myChar == '-') return false;
             return true;
         }
 
-        /** Converts accented character to regular character using ASCII mapping file. */
+        /**
+         * Searches given ASCII file for the unaccented equivalent of an accented character
+         * Each line in the file has the form accented=regular to appropriately parse
+         * If there is an equivalent, corresponding regular character is returned; otherwise, '\0' is returned.
+         *
+         * @param accented     The accented character to be converted
+         * @param accentsFile  The text file that defines mappings of accented to regular characters
+         * @return             The unaccented equivalent if found; '\0' if not found or if an error occurs
+         * Written by Khushi Dubey
+         */
         private static char findRegularChar(char accented, Scanner accentsFile) {
             while (accentsFile.hasNextLine()) {
                 String line = accentsFile.nextLine();
@@ -115,12 +72,26 @@ import java.util.Scanner;
             return '\0';
         }
 
-        /** Checks if a character is accented based on ASCII range. */
+        /**
+         * Check if character is accented using its ASCII
+         * @param c character being checked
+         * @return true or false, true if character is accented and false if not
+         * Written by Khushi Dubey
+         */
         private static boolean isAccented(char c) {
             return (c >= 192 && c <= 255 && c != 215 && c != 247);
         }
 
-        /** Cleans a word by removing miscellaneous characters and replacing accented letters. */
+
+        /**
+         * Preprocesses each word by removing miscellaneous symbols and replacing accented letters
+         * with their non-accented equivalent letters. As each character is parsed, only alphabetic
+         * letters and numbers are kept
+         * @param word The word that needs to be preprocessed
+         * @param accentsFile File that stores the equivalent non-accented letters for the accented letters
+         * @return preprocessed, lowercase version of input word that contains only digits and alphabetical letters
+         * Written by Khushi Dubey
+         */
         private static String cleanWord(String word, Scanner accentsFile) {
             StringBuilder cleaned = new StringBuilder();
             for (int i = 0; i < word.length(); i++) {
@@ -137,21 +108,29 @@ import java.util.Scanner;
             }
             return cleaned.toString();
         }
+
+        /**
+         * Method that loops through the given document and preprocesses it, discarding miscellaneous symbols, converting
+         * words to lower case, and cleaning them by removing miscellaneous symbols and converting accented characters,
+         * before calling the method countWords to update the database
+         * while keeping track of words added
+         * @param textFile   Scanner object of the text document to preprocess
+         * @param asciiFile  Scanner object of ascii file used by the method cleanWords to convert ascii characters
+         * @return           int of the number of words added to the database
+         * Written by Andersen Breyel
+         */
         private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLException {
             int count = 0;
             ArrayList<String> currentSentence = new ArrayList<>();
 
-            System.out.println("=== STARTING PREPROCESS ===");
-
             // Process the text line by line (newlines are ignored)
             while (textFile.hasNextLine()) {
                 String line = textFile.nextLine().trim();
-                System.out.println("\n[LINE READ]: '" + line + "'");
+
                 if (line.isEmpty()) continue;
 
                 // Split on whitespace — newlines are already ignored
                 String[] tokens = line.toLowerCase().split("\\s+");
-                System.out.println("[TOKENS SPLIT]: " + tokens.length + " tokens");
 
                 for (String rawToken : tokens) {
                     if (rawToken.isEmpty()) continue;
@@ -160,62 +139,60 @@ import java.util.Scanner;
                     Scanner accentScanner = importFile("accents.txt");
 
                     // Clean token (removes garbage & converts accents but keeps punctuation)
-                    String cleanedWord = cleanWord(rawToken, asciiFile);
+                    String cleanedWord = cleanWord(rawToken, accentScanner); //asciiFile);
 
                     // Close the scanner after use
                     if (accentScanner != null) accentScanner.close();
 
-                    System.out.println("  [CLEANED]: '" + cleanedWord + "'");
-
-                    if (cleanedWord == null || cleanedWord.isEmpty()) continue;
+                    if (cleanedWord == null || cleanedWord.isEmpty()) {
+                        continue;
+                    }
 
                     // If word ends with punctuation, separate it as its own token
                     char lastChar = cleanedWord.charAt(cleanedWord.length() - 1);
                     boolean endsWithPunc = (lastChar == '.' || lastChar == '!' || lastChar == '?');
-                    System.out.println("  [ENDS WITH PUNC]: " + endsWithPunc + " (lastChar='" + lastChar + "')");
-
 
                     if (endsWithPunc && cleanedWord.length() > 1) {
                         // Add the word minus punctuation
                         String trimmed = cleanedWord.substring(0, cleanedWord.length() - 1);
-                        System.out.println("  [ADDING WORD]: '" + trimmed + "'");
                         currentSentence.add(trimmed);
                         count++;
 
-                        System.out.println("  [ADDING PUNC]: '" + lastChar + "'");
                         // Add the punctuation itself as a separate token
                         currentSentence.add(Character.toString(lastChar));
                         count++;
 
-                        System.out.println("  [ADDING EOS]: '</s>'");
                         // If it’s a sentence-ending punctuation mark, also add </s>
                         //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
                             currentSentence.add("</s>");
                             count++;
-                            countWords(currentSentence);
+                            dbManager.countWords(currentSentence);
                             currentSentence.clear();
                         //}
                     } else {
-                        System.out.println("  [ADDING WORD]: '" + cleanedWord + "'");
                         // Just add the cleaned word normally
                         currentSentence.add(cleanedWord);
                         count++;
                     }
-
-                    System.out.println("  [CURRENT SENTENCE]: " + currentSentence);
                 }
             }
             // Handle any leftover words at the end (no punctuation)
             if (!currentSentence.isEmpty()) {
                 currentSentence.add("</s>");
-                countWords(currentSentence);
+                dbManager.countWords(currentSentence);
                 count += currentSentence.size();
                 currentSentence.clear();
             }
 
             return count;
         }
-        /** Main driver function. */
+
+        /**
+         * Main driver method for the program that prompts user for text files until they
+         * want to exit. After the user enters in a file, the method preprocesses the words
+         * and accurately stores in the DB and computes the total number of words
+         * Written by Khushi Dubey
+         */
         public static void run() throws SQLException {
             boolean keepReceiving = true;
             int fileWordCount = 0;

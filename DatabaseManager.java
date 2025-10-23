@@ -93,7 +93,7 @@ public class DatabaseManager {
      * @throws SQLException  if a database access error occurs
      * Written by Ezzah Qureshi
      */
-    private static void countWords(ArrayList<String> sentence) throws SQLException {
+    public void countWords(ArrayList<String> sentence) throws SQLException {
         // if sentence is null then method returns
         if (sentence == null) return;
 
@@ -101,7 +101,7 @@ public class DatabaseManager {
         // based on values provided, the word table will update word frequency, starting and ending word frequencies
         String insertWordSQL = """
             INSERT INTO Words (word, word_frequency, starting_word_occurences, ending_word_occurences)
-            VALUES (?, 1, ?, ?)
+            VALUES (?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 word_frequency = word_frequency + 1,
                 starting_word_occurences = starting_word_occurences + VALUES(starting_word_occurences),
@@ -126,9 +126,10 @@ public class DatabaseManager {
                 PreparedStatement insertRelStmt = conn.prepareStatement(insertRelationshipSQL)
         ) {
             // loop over the current sentence and get current word and next word
-            for (int i = 0; i < sentence.size() - 1; i++) {
+            for (int i = 0; i < sentence.size(); i++) {
                 String current = sentence.get(i);
-                String next = sentence.get(i + 1);
+                //String next = sentence.get(i + 1);
+                String next = (i < sentence.size() - 1) ? sentence.get(i + 1) : null;
 
                 // if the current token is </s> skip to next iteration
                 //if (current.equals("</s>")) continue;
@@ -136,26 +137,30 @@ public class DatabaseManager {
                 // if isStart is true then current word is first token
                 boolean isStart = (i == 0);
                 // if isEnd is true then the next word is the end of sentence token
-                boolean isEnd = (next.equals("</s>"));
+                //boolean isEnd = (next.equals("</s>"));
+                //boolean isEnd = (i == sentence.size() - 1) || (next != null && next.equals("</s>"));
+                boolean isEnd = (next != null && next.equals("</s>"));
 
                 // setting parameters for the word table sql statement
                 // sets current word as first value to pass
                 insertWordStmt.setString(1, current);
+                insertWordStmt.setInt(2, 1);
                 // if it's a starting word, pass 1, if not pass 0 into second parameter
-                insertWordStmt.setInt(2, isStart ? 1 : 0);
+                insertWordStmt.setInt(3, isStart ? 1 : 0);
                 // if it's the last word, pass 1, if not pass 0 into third parameter
-                insertWordStmt.setInt(3, isEnd ? 1 : 0);
+                insertWordStmt.setInt(4, isEnd ? 1 : 0);
                 // executeUpdate allows java to run the prev sql lines and alter db, in our case performs INSERT
                 insertWordStmt.executeUpdate();
 
                 // if there is another word after the current one, we need to make sure it's recorded in the db,
                 // since the relationships table has a reference to the next_word_id
 
-                //if (!next.equals("</s>")) {
+                if (next != null) {
                 // set first parameter to next word, dont pass in anything else
                 insertWordStmt.setString(1, next);
                 insertWordStmt.setInt(2, 0);
                 insertWordStmt.setInt(3, 0);
+                insertWordStmt.setInt(4, 0);
                 insertWordStmt.executeUpdate();
 
                 // To update relationship table, we need to id of current word and next word
@@ -169,7 +174,7 @@ public class DatabaseManager {
                 insertRelStmt.setInt(1, currentId);
                 insertRelStmt.setInt(2, nextId);
                 insertRelStmt.executeUpdate();
-                //}
+                }
             }
         }
     }

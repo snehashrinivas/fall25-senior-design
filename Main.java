@@ -8,7 +8,7 @@ public class Main {
             Connection conn = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/SentenceBuilder",
                     "root",
-                    "your_new_password"  // Replace with your actual password
+                    "your_new_password"
             );
 
             // 2. Create DatabaseManager
@@ -19,7 +19,7 @@ public class Main {
                 System.out.println("Database connected successfully!");
 
                 // 4. Run TextPreProcessor
-                UpdatedPreProcessing processor = new UpdatedPreProcessing(conn);
+                UpdatedPreProcessing processor = new UpdatedPreProcessing(conn, dbManager);
                 UpdatedPreProcessing.run();
             } else {
                 System.err.println("Failed to connect to database");
