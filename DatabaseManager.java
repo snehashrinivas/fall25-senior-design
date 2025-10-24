@@ -1,3 +1,16 @@
+/*
+ * This class manages database operations for the Sentence Builder
+ * It handles inserting words and their relationships into a MySQL database to track:
+ *   - Word frequencies (how often each word appears)
+ *   - Starting word occurrences (how often a word begins a sentence)
+ *   - Ending word occurrences (how often a word ends a sentence)
+ *   - Word relationships (which words commonly follow other words)
+ *
+ * The class uses prepared statements for SQL queries and manages the db connection through
+ * connect/disconnect methods.
+ *
+ */
+
 import java.sql.Connection;
 import java.sql.*;
 import java.util.ArrayList;
@@ -17,7 +30,7 @@ public class DatabaseManager {
         this.conn = conn;
     }
 
-    private void connect() throws SQLException {
+    /*private void connect() throws SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             String strConnect = "jdbc:mysql://localhost:3306/SentenceBuilder";
@@ -27,7 +40,7 @@ public class DatabaseManager {
         } catch (SQLException ex) {
             throw new SQLException("Database connection error: " + ex.getMessage());
         }
-    }
+    }*/
 
     // function to check if db is connected
     /**
@@ -103,7 +116,7 @@ public class DatabaseManager {
             INSERT INTO Words (word, word_frequency, starting_word_occurences, ending_word_occurences)
             VALUES (?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
-                word_frequency = word_frequency + 1,
+                word_frequency = word_frequency + VALUES(word_frequency),
                 starting_word_occurences = starting_word_occurences + VALUES(starting_word_occurences),
                 ending_word_occurences = ending_word_occurences + VALUES(ending_word_occurences);
         """;
@@ -144,6 +157,7 @@ public class DatabaseManager {
                 // setting parameters for the word table sql statement
                 // sets current word as first value to pass
                 insertWordStmt.setString(1, current);
+                // frequency
                 insertWordStmt.setInt(2, 1);
                 // if it's a starting word, pass 1, if not pass 0 into second parameter
                 insertWordStmt.setInt(3, isStart ? 1 : 0);

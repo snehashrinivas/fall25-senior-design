@@ -1,3 +1,15 @@
+/*
+This program takes in a text file, parses its words, cleans their contents, and stores them in a database.
+Cleaning words involves converting accented letters to their regular characters, removing miscallaneous
+characters, converting words to lowercase, and adding end of sentence tokens. Lines are processed
+one at a time, split into tokens, cleaned, and inserted into the database through the DatabaseManager
+object. End of sentences are marked with "</s>".
+
+The main purpose of this program is to count the total number of words in the file, store word frequency counts,
+and end of sentence/beginning of sentence frequency counts.
+
+*/
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.io.*;
@@ -40,8 +52,11 @@ import java.util.Scanner;
          * Written by Khushi Dubey
          */
         private static boolean checkIfMiscellaneous(char myChar) {
+            // alphabetical letters are allowed so skip
             if (myChar >= 'a' && myChar <= 'z') return false;
+            // !, -, ?, and . are also allowed so skip
             if (myChar == '!' || myChar == '.' || myChar == '?' || myChar == '-') return false;
+            // if character is not alphabetical or not one of the allowed punctuation marks, mark as miscellaneous
             return true;
         }
 
@@ -56,19 +71,30 @@ import java.util.Scanner;
          * Written by Khushi Dubey
          */
         private static char findRegularChar(char accented, Scanner accentsFile) {
+            // loop lines on the mapping file
             while (accentsFile.hasNextLine()) {
                 String line = accentsFile.nextLine();
+
+                // process only the lines with the correct format
                 if (line.contains("=")) {
+
+                    // tokenize the line
                     String[] parts = line.split("=");
+
+                    // ensure line is properly parsed into two parts
                     if (parts.length == 2) {
+                        // extract accented character and equivalent regular character
                         char accentedChar = parts[0].trim().charAt(0);
                         char regularChar = parts[1].trim().charAt(0);
+
+                        // return the mapping if match is found
                         if (accentedChar == accented) {
                             return regularChar;
                         }
                     }
                 }
             }
+            // Accented char is not found return null
             return '\0';
         }
 
@@ -79,7 +105,8 @@ import java.util.Scanner;
          * Written by Khushi Dubey
          */
         private static boolean isAccented(char c) {
-            return (c >= 192 && c <= 255 && c != 215 && c != 247);
+            // check accented characters ASCII range to see if character is accented
+            return (c >= 192 && c <= 255 && c != 215 && c != 247); //exclude x and division signs
         }
 
 
@@ -93,19 +120,30 @@ import java.util.Scanner;
          * Written by Khushi Dubey
          */
         private static String cleanWord(String word, Scanner accentsFile) {
+            // preprocessed word
             StringBuilder cleaned = new StringBuilder();
+
+            // iterate through each character in the word
             for (int i = 0; i < word.length(); i++) {
                 char currentChar = word.charAt(i);
+
+                // skip over symbols and numbers
                 if (checkIfMiscellaneous(currentChar)) continue;
 
+                // replace accented with their regular equivalents
                 if (isAccented(currentChar)) {
+                    // find the replacement letter
                     char replacement = findRegularChar(currentChar, accentsFile);
+                    // if replacement letter is found, add replaced letter to final preprocessed word
                     if (replacement != '\0') cleaned.append(replacement);
+                    // if replacement letter is not found, fallback on accented letter
                     else System.err.println("Accented char not found: " + currentChar);
                 } else {
+                    // append normal character as per regular
                     cleaned.append(currentChar);
                 }
             }
+            // convert word to lowercase and return
             return cleaned.toString();
         }
 
@@ -120,22 +158,26 @@ import java.util.Scanner;
          * Written by Andersen Breyel
          */
         private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLException {
+            // track total number of words
             int count = 0;
             ArrayList<String> currentSentence = new ArrayList<>();
 
             // Process the text line by line (newlines are ignored)
             while (textFile.hasNextLine()) {
+                // process line by line
                 String line = textFile.nextLine().trim();
 
+                // skip empty lines
                 if (line.isEmpty()) continue;
 
                 // Split on whitespace — newlines are already ignored
                 String[] tokens = line.toLowerCase().split("\\s+");
 
                 for (String rawToken : tokens) {
+                    // skip if any token is empty
                     if (rawToken.isEmpty()) continue;
 
-                    // FIXED: Create a new Scanner for accents file for each word
+                    // initalize a new Scanner for accents file
                     Scanner accentScanner = importFile("accents.txt");
 
                     // Clean token (removes garbage & converts accents but keeps punctuation)
@@ -144,6 +186,7 @@ import java.util.Scanner;
                     // Close the scanner after use
                     if (accentScanner != null) accentScanner.close();
 
+                    // skip word if it becomes empty after cleaning it
                     if (cleanedWord == null || cleanedWord.isEmpty()) {
                         continue;
                     }
@@ -152,6 +195,7 @@ import java.util.Scanner;
                     char lastChar = cleanedWord.charAt(cleanedWord.length() - 1);
                     boolean endsWithPunc = (lastChar == '.' || lastChar == '!' || lastChar == '?');
 
+                    // handle words that end with punctuation
                     if (endsWithPunc && cleanedWord.length() > 1) {
                         // Add the word minus punctuation
                         String trimmed = cleanedWord.substring(0, cleanedWord.length() - 1);
@@ -166,7 +210,10 @@ import java.util.Scanner;
                         //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
                             currentSentence.add("</s>");
                             count++;
+
+                            // send word to database for counting
                             dbManager.countWords(currentSentence);
+                            // clear list to process next sentence
                             currentSentence.clear();
                         //}
                     } else {
@@ -178,12 +225,15 @@ import java.util.Scanner;
             }
             // Handle any leftover words at the end (no punctuation)
             if (!currentSentence.isEmpty()) {
+                // add end of sentence token
                 currentSentence.add("</s>");
                 dbManager.countWords(currentSentence);
+
+                // increment count for remaining tokens
                 count += currentSentence.size();
                 currentSentence.clear();
             }
-
+            // return total number of words processed
             return count;
         }
 
@@ -194,26 +244,38 @@ import java.util.Scanner;
          * Written by Khushi Dubey
          */
         public static void run() throws SQLException {
+            // initialize flag to determine whether program needs to continue accepting file names
             boolean keepReceiving = true;
+            // total number of words in a file
             int fileWordCount = 0;
+            // scanner for user input
             Scanner userInput = new Scanner(System.in);
+            // import ASCII file with equivalent non-accented letters
             Scanner asciiFile = importFile("accents.txt");
 
+            // loop until user exits program
             while (keepReceiving) {
+                // reset count for each file
                 fileWordCount = 0;
+                // prompt user to enter in a file name
                 System.out.print("Enter file name or 'no' to exit: ");
+                // read user input
                 String fileName = userInput.nextLine().trim();
 
+                // if user says no, end program
                 if (fileName.equalsIgnoreCase("no")) {
+                    // set flag to false
                     keepReceiving = false;
                 } else {
+                    //import file
                     Scanner currentFile = importFile(fileName);
+                    // check that file exists before preprocessing
                     if (currentFile == null) {
                         System.out.println("File not found: " + fileName);
                         continue;
                     }
 
-                    // Check if file has content
+                    // Check if file has content, Debugging statements
                     System.err.println("[DEBUG] Checking if file has lines...");
                     if (currentFile.hasNextLine()) {
                         System.out.println("[DEBUG] File HAS lines");
@@ -223,6 +285,8 @@ import java.util.Scanner;
                     System.out.println("[DEBUG] About to call preprocess...");
 
                     System.out.println("Processing file...");
+
+                    // if it exists, preprocess the file and output its total word count
                     try {
                         fileWordCount = preprocess(currentFile, asciiFile);
                         System.out.println("[DEBUG] preprocess returned: " + fileWordCount);
@@ -231,11 +295,15 @@ import java.util.Scanner;
                         System.err.println("[ERROR in preprocess]: " + e.getMessage());
                         e.printStackTrace();
                     }
+                    // show user results of the preprocessing method
                     System.out.println("Finished processing. Word count: " + fileWordCount);
                 }
             }
 
+            // close scanners and program
             userInput.close();
+
+            // Make sure the file is open and then closes it
             if (asciiFile != null) asciiFile.close();
             System.out.println("Exiting program...");
         }
