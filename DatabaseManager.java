@@ -106,9 +106,13 @@ public class DatabaseManager {
      * @throws SQLException  if a database access error occurs
      * Written by Ezzah Qureshi
      */
+    // TODO: rewrite how we use eos to determine last word
     public void countWords(ArrayList<String> sentence) throws SQLException {
         // if sentence is null then method returns
         if (sentence == null) return;
+
+        // DEBUG: Print the current sentence being processed
+        System.out.println("[DEBUG countWords] Processing sentence: " + sentence);
 
         // SQL statement for inserting into words table in db, relies on the word being unique
         // based on values provided, the word table will update word frequency, starting and ending word frequencies
@@ -142,6 +146,7 @@ public class DatabaseManager {
             for (int i = 0; i < sentence.size(); i++) {
                 String current = sentence.get(i);
                 //String next = sentence.get(i + 1);
+                // if were at the last word then next word is null
                 String next = (i < sentence.size() - 1) ? sentence.get(i + 1) : null;
 
                 // if the current token is </s> skip to next iteration
@@ -152,7 +157,8 @@ public class DatabaseManager {
                 // if isEnd is true then the next word is the end of sentence token
                 //boolean isEnd = (next.equals("</s>"));
                 //boolean isEnd = (i == sentence.size() - 1) || (next != null && next.equals("</s>"));
-                boolean isEnd = (next != null && next.equals("</s>"));
+                //boolean isEnd = (next != null && next.equals("</s>"));
+                boolean isEnd = (i == sentence.size() - 1);
 
                 // setting parameters for the word table sql statement
                 // sets current word as first value to pass

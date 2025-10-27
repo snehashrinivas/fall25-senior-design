@@ -1,6 +1,6 @@
 import java.sql.*;
 
-public class Main {
+public class PreProcessMain {
     public static void main(String[] args) {
         try {
             // 1. Create database connection

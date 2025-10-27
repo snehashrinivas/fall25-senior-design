@@ -1,6 +1,6 @@
 /*
 This program takes in a text file, parses its words, cleans their contents, and stores them in a database.
-Cleaning words involves converting accented letters to their regular characters, removing miscallaneous
+Cleaning words involves converting accented letters to their regular characters, removing miscellaneous
 characters, converting words to lowercase, and adding end of sentence tokens. Lines are processed
 one at a time, split into tokens, cleaned, and inserted into the database through the DatabaseManager
 object. End of sentences are marked with "</s>".
@@ -36,7 +36,7 @@ import java.util.Scanner;
          */
         private static Scanner importFile(String fileName) {
             try {
-                return new Scanner(new File(fileName));
+                return new Scanner(new File(fileName));// "utf-8"));
             } catch (FileNotFoundException e) {
                 System.out.println("File not found: " + fileName);
                 return null;
@@ -119,6 +119,7 @@ import java.util.Scanner;
          * @return preprocessed, lowercase version of input word that contains only digits and alphabetical letters
          * Written by Khushi Dubey
          */
+        // TODO: figure out accents issue
         private static String cleanWord(String word, Scanner accentsFile) {
             // preprocessed word
             StringBuilder cleaned = new StringBuilder();
@@ -157,6 +158,7 @@ import java.util.Scanner;
          * @return           int of the number of words added to the database
          * Written by Andersen Breyel
          */
+        // TODO: change logic to not have eos
         private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLException {
             // track total number of words
             int count = 0;
@@ -177,11 +179,12 @@ import java.util.Scanner;
                     // skip if any token is empty
                     if (rawToken.isEmpty()) continue;
 
+                    // TODO: change logic so we are not importing file each time
                     // initalize a new Scanner for accents file
                     Scanner accentScanner = importFile("accents.txt");
 
                     // Clean token (removes garbage & converts accents but keeps punctuation)
-                    String cleanedWord = cleanWord(rawToken, accentScanner); //asciiFile);
+                    String cleanedWord = cleanWord(rawToken, accentScanner);
 
                     // Close the scanner after use
                     if (accentScanner != null) accentScanner.close();
@@ -196,25 +199,33 @@ import java.util.Scanner;
                     boolean endsWithPunc = (lastChar == '.' || lastChar == '!' || lastChar == '?');
 
                     // handle words that end with punctuation
-                    if (endsWithPunc && cleanedWord.length() > 1) {
-                        // Add the word minus punctuation
-                        String trimmed = cleanedWord.substring(0, cleanedWord.length() - 1);
-                        currentSentence.add(trimmed);
-                        count++;
-
-                        // Add the punctuation itself as a separate token
-                        currentSentence.add(Character.toString(lastChar));
-                        count++;
-
-                        // If it’s a sentence-ending punctuation mark, also add </s>
-                        //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
-                            currentSentence.add("</s>");
+                    // account for case if a punctuation ends a word that was cleaned out, so standalone punctuation
+                    if (endsWithPunc) {
+                        // Case 1: Only punctuation (e.g., ".")
+                        if (cleanedWord.length() == 1) {
+                            currentSentence.add(Character.toString(lastChar));
+                            count++;
+                        }
+                        // if the word length is greater than 1
+                        else {
+                            // Trim off the punctuation and add it to the current sentence
+                            String trimmed = cleanedWord.substring(0, cleanedWord.length() - 1);
+                            currentSentence.add(trimmed);
                             count++;
 
+                            // Add the punctuation itself as a separate token
+                            currentSentence.add(Character.toString(lastChar));
+                            count++;
+                        }
+                        // If it’s a sentence-ending punctuation mark, also add </s>
+                        //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
+                          //  currentSentence.add("</s>");
+                          //  count++;
+
                             // send word to database for counting
-                            dbManager.countWords(currentSentence);
+                        dbManager.countWords(currentSentence);
                             // clear list to process next sentence
-                            currentSentence.clear();
+                        currentSentence.clear();
                         //}
                     } else {
                         // Just add the cleaned word normally
@@ -226,7 +237,7 @@ import java.util.Scanner;
             // Handle any leftover words at the end (no punctuation)
             if (!currentSentence.isEmpty()) {
                 // add end of sentence token
-                currentSentence.add("</s>");
+                //currentSentence.add("</s>");
                 dbManager.countWords(currentSentence);
 
                 // increment count for remaining tokens
@@ -243,6 +254,8 @@ import java.util.Scanner;
          * and accurately stores in the DB and computes the total number of words
          * Written by Khushi Dubey
          */
+
+        // TODO: write file info, check is file is already in the db
         public static void run() throws SQLException {
             // initialize flag to determine whether program needs to continue accepting file names
             boolean keepReceiving = true;
