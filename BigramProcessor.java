@@ -2,7 +2,7 @@ import java.util.*;
 
 public class BigramProcessor {
     private final DatabaseManager db;
-    private boolean smoothing = true;
+    
 
     public BigramProcessor(DatabaseManager dbManager) {
         this.db = dbManager;
@@ -14,6 +14,7 @@ public class BigramProcessor {
      * Sorts a HashMap of words and their probabilities by probability in descending order
      * @param unsortedMap HashMap containing words as keys and their probabilities as values
      * @return ArrayList of words sorted by their probabilities in descending order
+     * Written by Sneha Shrinivas
      */
     private ArrayList<String> sortHashMap(HashMap<String, Double> unsortedMap) {
         // convert HashMap entries to a List for sorting
@@ -31,11 +32,5 @@ public class BigramProcessor {
         return sortedList;
     }
 
-    /**
-     * Set whether to use add-one smoothing in probability calculations
-     * @param useSmoothing true to enable smoothing, false to disable
-     */
-    public void setSmoothing(boolean useSmoothing) {
-        this.smoothing = useSmoothing;
-    }
+    
 }
