@@ -22,6 +22,7 @@ public class DatabaseManager {
     private PreparedStatement insertWordStmt;
     private PreparedStatement getWordIdStmt;
     private PreparedStatement insertRelStmt;
+    private PreparedStatement insertFileStmt; // added
 
     public DatabaseManager(Connection conn) {//String url, String username, String password, Connection conn) {
        /* this.url = url;
@@ -64,6 +65,7 @@ public class DatabaseManager {
             if (insertWordStmt != null) insertWordStmt.close();
             if (getWordIdStmt != null) getWordIdStmt.close();
             if (insertRelStmt != null) insertRelStmt.close();
+            if (insertFileStmt != null) insertFileStmt.close(); // added
             if (conn != null && !conn.isClosed()) {
                 conn.close();
                 System.out.println("Database connection closed.");
@@ -96,6 +98,48 @@ public class DatabaseManager {
         throw new SQLException("Word not found: " + word);
     }
 
+
+    /**
+     * Inserts file metadata into the Files table
+     * Records the filename, word count, and import timestamp in the database
+     * @param filename      Name of the file being imported
+     * @param wordCount     Total number of words processed from the file
+     * @return              The generated file_id for the inserted record
+     * @throws SQLException if a database access error occurs
+     * Written by Khushi Dubey
+     */
+    public int insertFileMetadata(String filename, int wordCount) throws SQLException {
+        // define query to insert file metadata into Files db
+        // use CURRENT_TIMESTAMP to record when the file was inserted
+        String insertFileSQL = """
+            INSERT INTO Files (filename, file_word_count, import_date)
+            VALUES (?, ?, CURRENT_TIMESTAMP);
+        """;
+
+        // send the SQL command to the database and generate file_id
+        try (PreparedStatement stmt = conn.prepareStatement(insertFileSQL, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, filename);
+            stmt.setInt(2, wordCount);
+            // use INSERT command to store data in db
+            stmt.executeUpdate();
+
+            // Retrieve the auto-generated file_id
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                // check if insertion was successful
+                if (rs.next()) {
+                    // print a confirmation message if metadata was inserted
+                    int fileId = rs.getInt(1);
+                    System.out.println("File metadata inserted successfully. File ID: " + fileId);
+
+                    // return file_id to caller method
+                    return fileId;
+                } else {
+                    // throw an error if file metadata was not stored correctly
+                    throw new SQLException("Failed to retrieve generated file_id");
+                }
+            }
+        }
+    } // added
 
     /**
      * Takes in a tokenized sentence and loops through each word to update the database via SQL statements.
@@ -170,24 +214,24 @@ public class DatabaseManager {
                 // since the relationships table has a reference to the next_word_id
 
                 if (next != null) {
-                // set first parameter to next word, dont pass in anything else
-                insertWordStmt.setString(1, next);
-                insertWordStmt.setInt(2, 0);
-                insertWordStmt.setInt(3, 0);
-                insertWordStmt.setInt(4, 0);
-                insertWordStmt.executeUpdate();
+                    // set first parameter to next word, dont pass in anything else
+                    insertWordStmt.setString(1, next);
+                    insertWordStmt.setInt(2, 0);
+                    insertWordStmt.setInt(3, 0);
+                    insertWordStmt.setInt(4, 0);
+                    insertWordStmt.executeUpdate();
 
-                // To update relationship table, we need to id of current word and next word
-                int currentId = getWordId(current, getWordIdStmt);
+                    // To update relationship table, we need to id of current word and next word
+                    int currentId = getWordId(current, getWordIdStmt);
 
-                //int nextId = next.equals("</s>") ? -1 : getWordId(next, getWordIdStmt);
-                int nextId = getWordId(next, getWordIdStmt);
+                    //int nextId = next.equals("</s>") ? -1 : getWordId(next, getWordIdStmt);
+                    int nextId = getWordId(next, getWordIdStmt);
 
-                // If there is a next word, then insert current id and next id, if not then skip
-                //if (nextId != -1) {
-                insertRelStmt.setInt(1, currentId);
-                insertRelStmt.setInt(2, nextId);
-                insertRelStmt.executeUpdate();
+                    // If there is a next word, then insert current id and next id, if not then skip
+                    //if (nextId != -1) {
+                    insertRelStmt.setInt(1, currentId);
+                    insertRelStmt.setInt(2, nextId);
+                    insertRelStmt.executeUpdate();
                 }
             }
         }

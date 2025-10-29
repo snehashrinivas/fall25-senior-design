@@ -6,9 +6,9 @@ public class Main {
             // 1. Create database connection
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection conn = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/SentenceBuilder",
+                    "jdbc:mysql://localhost:3306/sentencebuilderdb",
                     "root",
-                    "your_new_password"
+                    ""
             );
 
             // 2. Create DatabaseManager
