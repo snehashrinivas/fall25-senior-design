@@ -1,3 +1,14 @@
+
+/**
+ * This is a processor class for handling bigram-based language processing operations, calculating probalities to aid in word generation.
+ * 
+ * A bigram is a sequence of two adjacent words in a text.
+ * This class processes these bigrams to:
+ * - Calculate transition probabilities between words
+ * - Sort bigrams by their probability for word generation output
+ *
+ * 
+ */
 import java.util.*;
 
 public class BigramProcessor {
