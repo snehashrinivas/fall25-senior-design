@@ -115,11 +115,11 @@ public class UpdatedPreProcessing {
      * with their non-accented equivalent letters. As each character is parsed, only alphabetic
      * letters and numbers are kept
      * @param word The word that needs to be preprocessed
-     * @param accentsFile File that stores the equivalent non-accented letters for the accented letters
+     * //@param accentsFile File that stores the equivalent non-accented letters for the accented letters
      * @return preprocessed, lowercase version of input word that contains only digits and alphabetical letters
      * Written by Khushi Dubey
      */
-    private static String cleanWord(String word, Scanner accentsFile) {
+    private static String cleanWord(String word){//, Scanner accentsFile) {
         // preprocessed word
         StringBuilder cleaned = new StringBuilder();
 
@@ -127,21 +127,29 @@ public class UpdatedPreProcessing {
         for (int i = 0; i < word.length(); i++) {
             char currentChar = word.charAt(i);
 
-            // skip over symbols and numbers
-            if (checkIfMiscellaneous(currentChar)) continue;
-
             // replace accented with their regular equivalents
             if (isAccented(currentChar)) {
-                // find the replacement letter
-                char replacement = findRegularChar(currentChar, accentsFile);
+                // Create a new scanner for each accented character
+                Scanner accentScanner = importFile("accents.txt");
+                char replacement = findRegularChar(currentChar, accentScanner);
+
+                if (accentScanner != null) accentScanner.close();
+
                 // if replacement letter is found, add replaced letter to final preprocessed word
-                if (replacement != '\0') cleaned.append(replacement);
-                    // if replacement letter is not found, fallback on accented letter
-                else System.err.println("Accented char not found: " + currentChar);
-            } else {
-                // append normal character as per regular
-                cleaned.append(currentChar);
+                if (replacement != '\0') {
+                    cleaned.append(replacement);
+                } else {
+                    System.err.println("Accented char not found: " + currentChar);
+                }
+                // Move to next character
+                continue;
             }
+
+            // skip over symbols and numbers (AFTER checking for accents)
+            if (checkIfMiscellaneous(currentChar)) continue;
+
+            // append normal character as per regular
+            cleaned.append(currentChar);
         }
         // convert word to lowercase and return
         return cleaned.toString();
@@ -179,13 +187,13 @@ public class UpdatedPreProcessing {
 
                 // TODO: change logic so we are not importing file each time
                 // initalize a new Scanner for accents file
-                Scanner accentScanner = importFile("accents.txt");
+                //Scanner accentScanner = importFile("accents.txt");
 
                 // Clean token (removes garbage & converts accents but keeps punctuation)
-                String cleanedWord = cleanWord(rawToken, accentScanner); //asciiFile);
+                String cleanedWord = cleanWord(rawToken);//, accentScanner); //asciiFile);
 
                 // Close the scanner after use
-                if (accentScanner != null) accentScanner.close();
+                //if (accentScanner != null) accentScanner.close();
 
                 // skip word if it becomes empty after cleaning it
                 if (cleanedWord == null || cleanedWord.isEmpty()) {
