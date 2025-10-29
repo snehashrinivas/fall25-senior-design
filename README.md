@@ -20,13 +20,27 @@ Database Schema:
 - Words Table: Stores each unique word, its frequency, and start/end occurrences
 - Relationships Table: Maps relationships between consecutive words (bigrams)
 
+JavaFX Frontend:
+- Home: enter first word; buttons for Generate Sentence and Auto Complete
+- Autocomplete: shows three suggested next words with Re-Roll and Finish
+- Feedback: shows generated sentence and a clickable 1–5 star rating
+- Thank You: confirmation screen with Back to Home
+
 Technologies Used
 - Java 22+
 - MySQL 8.0+
 - MySQL Workbench
 - JDBC (MySQL Connector/J)
+- JavaFX SDK 25
 
 How to setup project
 - Download MySQL Community Server and MySQL Workbench
 - Start the MySQL server.
 - Create a new schema and run DB_Tables.sql script
+- Open the project in IntelliJ.
+- Create Run Configuration -> Application:
+- Main class: frontend.FrontendMain
+- VM options (adjust the path to your JavaFX SDK):
+- macOS/Linux: --module-path "/path/to/javafx-sdk-25.0.1/lib" --add-modules javafx.controls,javafx.fxml
+- Windows: --module-path "C:\path\to\javafx-sdk-25.0.1\lib" --add-modules javafx.controls,javafx.fxml
+- Run the configuration.
