@@ -1,14 +1,16 @@
 import java.sql.*;
 
-public class Main {
+public class PreProcessMain {
     public static void main(String[] args) {
         try {
             // 1. Create database connection
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection conn = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/sentencebuilderdb",
+                    //"jdbc:mysql://localhost:3306/sentencebuilderdb", //khushi's url
+                    "jdbc:mysql://localhost:3306/SentenceBuilder",
                     "root",
-                    ""
+                    "your_new_password"
+                    //"" Khushi's password
             );
 
             // 2. Create DatabaseManager

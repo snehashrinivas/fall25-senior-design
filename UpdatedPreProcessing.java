@@ -177,6 +177,7 @@ public class UpdatedPreProcessing {
                 // skip if any token is empty
                 if (rawToken.isEmpty()) continue;
 
+                // TODO: change logic so we are not importing file each time
                 // initalize a new Scanner for accents file
                 Scanner accentScanner = importFile("accents.txt");
 
@@ -196,26 +197,33 @@ public class UpdatedPreProcessing {
                 boolean endsWithPunc = (lastChar == '.' || lastChar == '!' || lastChar == '?');
 
                 // handle words that end with punctuation
-                if (endsWithPunc && cleanedWord.length() > 1) {
-                    // Add the word minus punctuation
-                    String trimmed = cleanedWord.substring(0, cleanedWord.length() - 1);
-                    currentSentence.add(trimmed);
-                    count++;
+                // account for case if a punctuation ends a word that was cleaned out, so standalone punctuation
+                if (endsWithPunc) {
+                    // Case 1: Only punctuation (e.g., ".")
+                    if (cleanedWord.length() == 1) {
+                        currentSentence.add(Character.toString(lastChar));
+                        count++;
+                    }
+                    else {
+                        // Add the word minus punctuation
+                        String trimmed = cleanedWord.substring(0, cleanedWord.length() - 1);
+                        currentSentence.add(trimmed);
+                        count++;
 
-                    // Add the punctuation itself as a separate token
-                    currentSentence.add(Character.toString(lastChar));
-                    count++;
+                        // Add the punctuation itself as a separate token
+                        currentSentence.add(Character.toString(lastChar));
+                        count++;
+                    }
 
-                    // If it’s a sentence-ending punctuation mark, also add </s>
-                    //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
-                    currentSentence.add("</s>");
-                    count++;
+                        // If it’s a sentence-ending punctuation mark, also add </s>
+                        //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
+                        //currentSentence.add("</s>");
+                        //count++;
 
-                    // send word to database for counting
-                    dbManager.countWords(currentSentence);
-                    // clear list to process next sentence
-                    currentSentence.clear();
-                    //}
+                        // send word to database for counting
+                        dbManager.countWords(currentSentence);
+                        // clear list to process next sentence
+                        currentSentence.clear();
                 } else {
                     // Just add the cleaned word normally
                     currentSentence.add(cleanedWord);
@@ -226,7 +234,7 @@ public class UpdatedPreProcessing {
         // Handle any leftover words at the end (no punctuation)
         if (!currentSentence.isEmpty()) {
             // add end of sentence token
-            currentSentence.add("</s>");
+            //currentSentence.add("</s>");
             dbManager.countWords(currentSentence);
 
             // increment count for remaining tokens

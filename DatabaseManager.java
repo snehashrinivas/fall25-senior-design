@@ -196,7 +196,8 @@ public class DatabaseManager {
                 // if isEnd is true then the next word is the end of sentence token
                 //boolean isEnd = (next.equals("</s>"));
                 //boolean isEnd = (i == sentence.size() - 1) || (next != null && next.equals("</s>"));
-                boolean isEnd = (next != null && next.equals("</s>"));
+                //boolean isEnd = (next != null && next.equals("</s>"));
+                boolean isEnd = (i == sentence.size() - 1);
 
                 // setting parameters for the word table sql statement
                 // sets current word as first value to pass
