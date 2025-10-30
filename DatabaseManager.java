@@ -98,6 +98,203 @@ public class DatabaseManager {
         throw new SQLException("Word not found: " + word);
     }
 
+    /**
+     * A helper function to retrieve the word given its ID
+     * @param ID  int - ID whose corresponding ID should be retrieved
+     * @param stmt  PreparedStatement - SELECT statement for looking up word by word_id
+     * @throws SQLException  if the word ID is not found or database access fails
+     * Written by Ezzah Qureshi and Andersen Breyel
+     */
+    private static String getWord(int ID, PreparedStatement stmt) throws SQLException {
+        // the word id retrieval statement, set value = to word
+        stmt.setInt(1, ID);
+        // execute query and return ResultSet (object that holds sql results)
+        try (ResultSet rs = stmt.executeQuery()) {
+            // read the result (pointer is pointing to before the int, hence why .next)
+            if (rs.next()) {
+                return rs.getString("word");
+            }
+        }
+        throw new SQLException(" ID not found: " + ID);
+    }
+
+    /**
+     * Helper method to get the number of words stored in the database
+     * @return int of the number rows in the Words table in the dataase
+     * Written by Andersen Breyel
+     */
+    public int getVocabSize() {
+        // Try block to catch SQL exceptions
+        // Creates a statement object that will become the query
+        try(Statement stmt = conn.createStatement()) {
+            // Counts the number of rows for the first column, the primary key,
+            // and stores them in an alias "NumberOfRows"
+            ResultSet rs = stmt.executeQuery("SELECT COUNT(1) as NumberOfRows FROM" + "Words");
+            // Moves the pointer to the first row of the result set
+            if(rs.next()) {
+                // Return the result of the query
+                return rs.getInt("NumberOfRows");
+            }
+        } catch (SQLException ex) {
+            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
+        }
+        // Intellij giving redline without this return statement but should be unreachable
+        return 0;
+    }
+
+    /**
+     * Helper method to check if the word is being stored in the database
+     * @param unigram given word to be checked if it's in the database
+     * @return     boolean representing if the word exists in the database or not
+     * Written by Andersen Breyel
+     */
+    public boolean wordInDB(String unigram) {
+        // Prepared SQL Query String
+        String checkWordSQL = "SELECT 1 FROM Words WHERE word = ?";
+        // Try opening sql connections
+        try(PreparedStatement checkWordStmt = conn.prepareStatement(checkWordSQL)) {
+            checkWordStmt.setString(1, unigram);
+            ResultSet rs = checkWordStmt.executeQuery();
+            // rs.next() returns false if it's pointing to the end of the ResultSet, true otherwise
+            return rs.next();
+        } catch (SQLException ex) {
+            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Helper method to check if given bigram is stored in the database
+     * @param prefix prefix word in bigram to be checked
+     * @param suffix suffix word in bigram to be checked
+     * @return      boolean representing if given bigram is being stored in the database
+     * Written by Andersen Breyel
+     */
+    public boolean wordsInDB(String prefix, String suffix) {
+        // Prepared SQL Query String
+        String checkWordsSQL = "SELECT 1 FROM Relationships WHERE (current_word_id = ? AND next_word_id = ?)";
+        // Try opening sql connections
+        try(PreparedStatement checkWordStmt = conn.prepareStatement(checkWordsSQL)) {
+            checkWordStmt.setString(1, prefix);
+            checkWordStmt.setString(2, suffix);
+            ResultSet rs = checkWordStmt.executeQuery();
+            // rs.next() returns false if it's pointing to the end of the ResultSet, true otherwise
+            return rs.next();
+        } catch (SQLException ex) {
+            System.err.println("SQL error getting number of rows of Relationship table: " + ex.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Helper method that returns the given word's frequency
+     * @param unigram word to be queried for its frequency in the database
+     * @return      an int representing the number of times the given word appears in the documents
+     * Written by Andersen Breyel
+     */
+    public int getWordFreq(String unigram) {
+        // Prepared SQL Query String
+        String getWordFreqSQL = "SELECT word_frequency FROM Words WHERE word = ?";
+        // Try block to catch SQL exceptions
+        // Creates a statement object that will become the query
+        try(PreparedStatement stmt = conn.prepareStatement(getWordFreqSQL)) {
+            stmt.setString(1, unigram);
+            ResultSet rs = stmt.executeQuery();
+            // Moves the pointer to the first row of the result set
+            if(rs.next()) {
+                // Return the result of the query
+                return rs.getInt("word_frequency");
+            }
+        } catch (SQLException ex) {
+            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
+        }
+        // Intellij giving redline without this return statement but should be unreachable
+        return 0;
+    }
+
+    /**
+     * Helper method that returns the given bigram's frequency
+     * @param prefix prefix of the bigram to be queried for its frequency in the database
+     * @param suffix suffix of the bigram to be queried for its frequency in the database
+     * @return      an int representing the number of times the given bigram appears in the documents
+     * Written by Andersen Breyel
+     */
+    public int getWordsFreq(String prefix, String suffix) {
+        // SQL statement to select word_id for a given word
+        String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
+        // SQL statement to get the frequency of a bigram given the two word's IDs
+        String getWordsFreqSQL = "SELECT combination_count FROM Relationships WHERE (current_word_id = ? AND next_word_id = ?)";
+        // Open SQL connections to get word IDs and catch SQL exceptions
+        try (
+                // Open a connection to get both prefix and suffix word IDs using prepared statements
+                PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL);
+                PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL);
+                ) {
+            // Pass prepared statements into getWordIDs to get the respective IDs
+            int prefixID = getWordId(prefix, getPrefixIDStmt);
+            int suffixID = getWordId(suffix, getSuffixIDStmt);
+            // Open SQL connection to get bigram freqs and catch SQL exceptions
+            try (PreparedStatement getWordsFreqStmt = conn.prepareStatement(getWordsFreqSQL)) {
+                getWordsFreqStmt.setInt(1, prefixID);
+                getWordsFreqStmt.setInt(2, suffixID);
+                ResultSet rs = getWordsFreqStmt.executeQuery();
+                if(rs.next()) {
+                    // Return the result of the query
+                    return rs.getInt("combination_count");
+                }
+            } catch (SQLException ex) {
+                System.err.println("SQL error getting bigram freqs for getWordsFreq method: " + ex.getMessage());
+            }
+        } catch (SQLException ex) {
+            System.err.println("SQL error getting word IDs for getWordsFreq method: " + ex.getMessage());
+
+        }
+        return 0;
+    }
+
+    /**
+     * Helper function that returns all the words that have followed the given prefix
+     * across the documents
+     * @param prefix given word used to query the Words table for all the possible bigram suffixes
+     * @return       an array list of all words that follow the given word across the documents
+     * Written by Andersen Breyel
+     */
+    public ArrayList<String> getPossibleBigrams(String prefix) {
+        ArrayList<String> suffixList = new ArrayList<>();
+        // SQL statement to select word_id for a given word
+        String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
+        // SQL statement to select word for a given word ID
+        String getWordSQL = "SELECT word FROM Words WHERE word_id = ?";
+        // SQL statement to get the frequency of a bigram given the two word's IDs
+        String getSuffixIDsSQL = "SELECT next_word_id FROM Relationships WHERE current_word_id = ?";
+        // Open SQL connection to get word ID and catch SQL exceptions
+        try (PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL)) {
+            // Pass prepared statement into getWordID to get the prefix ID
+            int prefixID = getWordId(prefix, getPrefixIDStmt);
+            try(
+                    PreparedStatement getSuffixIDsStmt = conn.prepareStatement(getSuffixIDsSQL);
+                    PreparedStatement getWordStmt = conn.prepareStatement(getWordSQL);
+            ) {
+                getSuffixIDsStmt.setInt(1, prefixID);
+                ResultSet suffixIDsRS = getSuffixIDsStmt.executeQuery();
+                // Loop through the result set
+                while(suffixIDsRS.next()) {
+                    // Get the next item from the result set
+                    int suffixID = suffixIDsRS.getInt("next_word_id");
+                    String suffix = getWord(suffixID, getWordStmt);
+                    suffixList.add(suffix);
+                }
+                return suffixList;
+            } catch (SQLException ex) {
+                System.err.println("SQL error next word IDs for getPossibleBigrams method: " + ex.getMessage());
+            }
+
+        } catch (SQLException ex) {
+            System.err.println("SQL error getting word IDs for getPossibleBigrams method: " + ex.getMessage());
+        }
+        return suffixList;
+    }
+
 
     /**
      * Inserts file metadata into the Files table
