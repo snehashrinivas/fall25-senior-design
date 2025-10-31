@@ -75,6 +75,33 @@ public class DatabaseManager {
         }
     }
 
+    // for that word if that is an eos and if tis greater than 0 return true
+    public static boolean wordEndsSentence(String unigram) {
+        String wordEOS = """
+                SELECT ending_word_occurences AS eos FROM Words WHERE word = ? 
+                """;
+
+            try ( PreparedStatement wordEOSStmt = conn.prepareStatement(wordEOS);) {
+
+                wordEOSStmt.setString(1, unigram);
+                ResultSet rs = wordEOSStmt.executeQuery();
+
+                if (rs.next()) {
+                    int eosValue = rs.getInt("eos");
+                    return eosValue > 0;
+                }
+                else {
+                    System.out.println("Error for finding unigram occurence" + unigram);
+                }
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        return false;
+    }
+
+
+
     // need to put get id and countWords in here
     /**
      * A helper function to retrieve the unique database ID (word_id) of a given word
@@ -129,7 +156,7 @@ public class DatabaseManager {
         try(Statement stmt = conn.createStatement()) {
             // Counts the number of rows for the first column, the primary key,
             // and stores them in an alias "NumberOfRows"
-            ResultSet rs = stmt.executeQuery("SELECT COUNT(1) as NumberOfRows FROM" + "Words");
+            ResultSet rs = stmt.executeQuery("SELECT COUNT(1) as NumberOfRows FROM Words");
             // Moves the pointer to the first row of the result set
             if(rs.next()) {
                 // Return the result of the query
@@ -150,7 +177,7 @@ public class DatabaseManager {
      */
     public boolean wordInDB(String unigram) {
         // Prepared SQL Query String
-        String checkWordSQL = "SELECT 1 FROM Words WHERE word = ?";
+        String checkWordSQL = "SELECT * FROM Words WHERE word = ?";
         // Try opening sql connections
         try(PreparedStatement checkWordStmt = conn.prepareStatement(checkWordSQL)) {
             checkWordStmt.setString(1, unigram);
@@ -171,22 +198,37 @@ public class DatabaseManager {
      * Written by Andersen Breyel
      */
     public boolean wordsInDB(String prefix, String suffix) {
+        // SQL statement to select word_id for a given word
+        String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
         // Prepared SQL Query String
-        String checkWordsSQL = "SELECT 1 FROM Relationships WHERE (current_word_id = ? AND next_word_id = ?)";
-        // Try opening sql connections
-        try(PreparedStatement checkWordStmt = conn.prepareStatement(checkWordsSQL)) {
-            checkWordStmt.setString(1, prefix);
-            checkWordStmt.setString(2, suffix);
-            ResultSet rs = checkWordStmt.executeQuery();
-            // rs.next() returns false if it's pointing to the end of the ResultSet, true otherwise
-            return rs.next();
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Relationship table: " + ex.getMessage());
-            return false;
+        String checkWordsSQL = "SELECT * FROM Relationships WHERE current_word_id = ? AND next_word_id = ?";
+
+        try (
+                // Open a connection to get both prefix and suffix word IDs using prepared statements
+                PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL);
+                PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL);
+        ) {
+            // Pass prepared statements into getWordIDs to get the respective IDs
+            int prefixID = getWordId(prefix, getPrefixIDStmt);
+            int suffixID = getWordId(suffix, getSuffixIDStmt);
+
+            // Try opening sql connections
+            try (PreparedStatement checkWordStmt = conn.prepareStatement(checkWordsSQL)) {
+                checkWordStmt.setInt(1, prefixID);
+                checkWordStmt.setInt(2, suffixID);
+                ResultSet rs = checkWordStmt.executeQuery();
+                // rs.next() returns false if it's pointing to the end of the ResultSet, true otherwise
+                return rs.next();
+            } catch (SQLException ex) {
+                System.err.println("SQL error getting number of rows of Relationship table: " + ex.getMessage());
+                return false;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    /**
+        /**
      * Helper method that returns the given word's frequency
      * @param unigram word to be queried for its frequency in the database
      * @return      an int representing the number of times the given word appears in the documents

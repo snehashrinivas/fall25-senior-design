@@ -21,8 +21,8 @@ public class TextProcessorMain {
                 System.out.println("Database connected successfully!");
 
                 // 4. Run TextPreProcessor
-                BigramProcessorMissingPreprocess processor = new BigramProcessorMissingPreprocess(conn, dbManager);
-                BigramProcessorMissingPreprocess.run();
+                BigramProcessor processor = new BigramProcessor(conn, dbManager);
+                BigramProcessor.run();
             } else {
                 System.err.println("Failed to connect to database");
             }

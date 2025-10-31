@@ -14,13 +14,13 @@ import java.util.*;
 import java.sql.*;
 
 public class BigramProcessor {
-    private static DatabaseManager db;
+    private static DatabaseManager db = null;
     private static Connection conn = null;
     
 
-    public BigramProcessor(DatabaseManager dbManager) {
-        BigramProcessorMissingPreprocess.conn = conn; // assign to static member
-        BigramProcessorMissingPreprocess.db = dbManager;
+    public BigramProcessor(Connection conn, DatabaseManager dbManager) {
+        BigramProcessor.conn = conn; // assign to static member
+        BigramProcessor.db = dbManager;
     }
 
     
@@ -31,7 +31,7 @@ public class BigramProcessor {
      * @return ArrayList of words sorted by their probabilities in descending order
      * Written by Sneha Shrinivas
      */
-    private ArrayList<String> sortHashMap(HashMap<String, Double> unsortedMap) {
+    private static ArrayList<String> sortHashMap(HashMap<String, Double> unsortedMap) {
         // convert HashMap entries to a List for sorting
         List<Map.Entry<String, Double>> list = new ArrayList<>(unsortedMap.entrySet());
         
@@ -64,7 +64,11 @@ public class BigramProcessor {
         // Used if laplace smoothing is being applied, number of rows in the Words table
         int vocabSize = db.getVocabSize();
         // If either of the words or the bigram do not appear in the database, the bigram has a 0% chance of appearing
+        // give error handling --> check if bigram exists in db, if not return 0
         if (!db.wordInDB(prefix) || !db.wordInDB(suffix) || !db.wordsInDB(prefix, suffix)) {
+            System.out.println("prefix in db: " + db.wordInDB(prefix));
+            System.out.println("suffix in db: " + db.wordInDB(suffix));
+            System.out.println("prefix and suffix in db: " + db.wordsInDB(prefix, suffix));
             return 0.0;
         }
         // Word frequency of the prefix word in the Words table
@@ -95,10 +99,10 @@ public class BigramProcessor {
         // Tokenize the sentence into an array of words by splitting it on whitespaces
         String[] tokenizedSentence = prefixSentence.split(" ");
         // Convert to lowercase and clean each word so they match words in the database
-        String[] preprocessedSentence = preprocessSentence(tokenizedSentence);
+       // String[] preprocessedSentence = preprocessSentence(tokenizedSentence);
         // Start from the last word of the prefix sentence
-        String currentWord = preprocessedSentence[(preprocessedSentence.length() - 1)];
-        String generatedSentence = "";
+        String currentWord = tokenizedSentence[(tokenizedSentence.length - 1)];
+        String generatedSentence =  prefixSentence + " ";
         // Generate a maximum of n words
         for (int i = 0; i < n; i++) {
             // Don't know what the next word will be
@@ -114,6 +118,12 @@ public class BigramProcessor {
             } else {
                 // Create an array list of all the words that succeed the current word in the Relationships table
                 ArrayList<String> bigrams = db.getPossibleBigrams(currentWord);
+
+                System.out.println(currentWord + ": ");
+                //for (String word : bigrams) {
+                    //System.out.println(word);
+                //}
+
                 // If the list is empty print an error and exit
                 if (bigrams.isEmpty()) {
                     System.out.println("no bigrams found");
@@ -130,11 +140,15 @@ public class BigramProcessor {
                             highestProb = newProb;
                             nextWord = potentialWord;
                         }
+                        //System.out.println(currentWord + ", potenital next word: " + potentialWord + ", probability: " + newProb);
+
                     }
                     // Append the new word to the generated sentence
                     generatedSentence = generatedSentence + nextWord + " ";
+
                     // If the newly appended word is the eos token break out of the loop
-                    if (nextWord.equals("</s>")) {
+                    // dbmanager method that returns a boolean, if that word ever ends a sentence just end the sentence
+                    if (DatabaseManager.wordEndsSentence(nextWord)) {//nextWord.equals("</s>")) {
                         break;
                     }
                     // Update the current word to be the newly appended word
@@ -156,9 +170,11 @@ public class BigramProcessor {
         // Tokenize the sentence into an array of words by splitting it on whitespaces
         String[] tokenizedSentence = prefixSentence.split(" ");
         // Convert to lowercase and clean each word so they match words in the database
-        String[] preprocessedSentence = preprocessSentence(tokenizedSentence);
+       // String[] preprocessedSentence = preprocessSentence(tokenizedSentence);
         // Calculate the next words using the last word of the prefix sentence
-        String prefixWord = preprocessedSentence[preprocessedSentence.length() - 1];
+        //preprocessedSentence[preprocessedSentence.length() - 1];
+        //int str_length = tokenizedSentence.length - 1;
+        String prefixWord = tokenizedSentence[tokenizedSentence.length - 1].toLowerCase();
         // Create an array list of all the words that succeed the current word in the Relationships table
         ArrayList<String> bigrams = db.getPossibleBigrams(prefixWord);
         // List of sorted words to be returned
@@ -198,4 +214,4 @@ public class BigramProcessor {
 }
 
     
-}
+
