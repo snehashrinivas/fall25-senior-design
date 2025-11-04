@@ -8,6 +8,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import frontend.views.MainView;
+import frontend.views.FeedbackView;
+import frontend.views.AutocompleteView;
 
 public class HomeView {
     public static Parent create() {
@@ -36,19 +39,19 @@ public class HomeView {
         // when Generate is clicked: go to Feedback with a placeholder sentence
         // call backend with wordField.getText() to get the real sentence
         btnGenerate.setOnAction(e -> {
-            String firstWord = wordField.getText().trim();              // user input
+            String firstWord = wordField.getText().trim();
             String sentence  = firstWord.isEmpty()
-                    ? "The quick brown fox jumps over the lazy dog."
+                    ? "The quick brown fox jumps over the lazy dog." //placeholder for now
                     : firstWord + " ... (generated continuation)";
-            SceneManager.show("Sentence Builder - Feedback", FeedbackView.create(sentence));
+            MainView.setCenter(FeedbackView.create(sentence), "Feedback");
         });
 
         // when Auto Complete is clicked: go to Autocomplete with 3 options
         // fetch real suggestions using firstWord
         btnAuto.setOnAction(e -> {
             String firstWord = wordField.getText().trim();
-            String[] options = {"quick", "dog", "man"};                 // placeholder
-            SceneManager.show("Sentence Builder - Auto Complete", AutocompleteView.create(options));
+            String[] options = {"quick", "dog", "man"}; //placeholder options
+            MainView.setCenter(AutocompleteView.create(options), "Word Completion");
         });
 
         //allow pressing Enter in the text field to trigger Generate

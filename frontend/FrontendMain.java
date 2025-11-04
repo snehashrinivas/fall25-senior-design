@@ -3,6 +3,7 @@ package frontend;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import frontend.views.HomeView;
+import frontend.views.MainView;
 
 public class FrontendMain extends Application {
     @Override
@@ -11,7 +12,7 @@ public class FrontendMain extends Application {
         SceneManager.init(stage);
 
         // title
-        SceneManager.show("Sentence Builder - Home", HomeView.create());
+        SceneManager.show("Sentence Builder", MainView.create());
     }
 
     public static void main(String[] args) {

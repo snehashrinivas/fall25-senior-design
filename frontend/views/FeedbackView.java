@@ -1,5 +1,6 @@
 package frontend.views;
 
+import frontend.views.MainView;
 import frontend.SceneManager;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -39,14 +40,13 @@ public class FeedbackView {
 
         // go back to Home so the user can try again
         btnRegenerate.setOnAction(e ->
-                SceneManager.show("Sentence Builder - Home", HomeView.create())
+                MainView.setCenter(HomeView.create(), "Sentence Builder - Home")
         );
 
         // on Finish: (optionally) get rating, then navigate to the Thank You page
-        btnFinish.setOnAction(e -> {
-            // int rating = stars.getRating();  // <- uncomment to record/store rating
-            SceneManager.show("Sentence Builder - Thank You", ThankYouView.create());
-        });
+        btnFinish.setOnAction(e ->
+                MainView.setCenter(ThankYouView.create(), "Thank You")
+        );
 
         // assemble the screen in order
         root.getChildren().addAll(

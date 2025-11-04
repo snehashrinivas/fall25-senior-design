@@ -1,6 +1,7 @@
 package frontend.views;
 
-import frontend.SceneManager;
+import frontend.views.MainView;
+import frontend.views.HomeView;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -27,10 +28,9 @@ public class ThankYouView {
         // return to Home screen
         Button back = new Button("Back to Home");
         back.setDefaultButton(true);           // pressing Enter activates this
-        back.setOnAction(e -> SceneManager.show(
-                "Sentence Builder - Home",
-                HomeView.create()
-        ));
+        back.setOnAction(e ->
+                MainView.setCenter(HomeView.create(), "Sentence Generation")
+        );
         // assemble the screen
         root.getChildren().addAll(title, msg, back);
         return root;

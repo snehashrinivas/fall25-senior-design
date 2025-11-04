@@ -1,5 +1,7 @@
 package frontend.views;
 
+import frontend.views.MainView;
+import frontend.views.FeedbackView;
 import frontend.SceneManager;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -43,14 +45,13 @@ public class AutocompleteView {
             System.out.println("Requesting new words...");
         });
 
-        btnFinish.setOnAction(e -> {
+        btnFinish.setOnAction(e ->
             // TODO: finalize with backend
             //when “Finish” is pressed: go to the Feedback screen.
             //currently passes a dummy sentence
             //pass the real built sentence from backend.
-            SceneManager.show("Sentence Builder - Feedback",
-                    FeedbackView.create("The quick brown fox jumps over the lazy dog."));
-        });
+            MainView.setCenter(FeedbackView.create("The quick brown fox jumps over the lazy dog."), "Feedback")
+        );
         //add the prompt, choices row, and action row to the root VBox.
         root.getChildren().addAll(prompt, choiceRow, actionRow);
         return root;
@@ -63,7 +64,6 @@ public class AutocompleteView {
         //navigates to Feedback with a placeholder sentence for now
         System.out.println("Selected word: " + word);
         // TODO: send selection to backend and update sentence
-        SceneManager.show("Sentence Builder - Feedback",
-                FeedbackView.create("The quick brown fox jumps over the lazy dog."));
+        MainView.setCenter(FeedbackView.create("The quick brown fox jumps over the lazy dog."), "Feedback");
     }
 }
