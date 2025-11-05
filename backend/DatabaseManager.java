@@ -1,4 +1,4 @@
-/*
+package backend;/*
  * This class manages database operations for the Sentence Builder
  * It handles inserting words and their relationships into a MySQL database to track:
  *   - Word frequencies (how often each word appears)
@@ -8,7 +8,7 @@
  *
  * The class uses prepared statements for SQL queries and manages the db connection through
  * connect/disconnect methods.
- *
+ * written by Ezzah, Khushi, and Andersen
  */
 
 import java.sql.Connection;
@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 public class DatabaseManager {
     private static Connection conn;
+    private static DatabaseManager instance;
 
     // Prepared statements for reuse
     private PreparedStatement insertWordStmt;
@@ -24,24 +25,37 @@ public class DatabaseManager {
     private PreparedStatement insertRelStmt;
     private PreparedStatement insertFileStmt; // added
 
-    public DatabaseManager(Connection conn) {//String url, String username, String password, Connection conn) {
-       /* this.url = url;
-        this.username = username;
-        this.password = password;*/
+    public DatabaseManager(Connection conn) {
         this.conn = conn;
     }
 
-    /*private void connect() throws SQLException {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            String strConnect = "jdbc:mysql://localhost:3306/SentenceBuilder";
-            conn = DriverManager.getConnection(strConnect, "root", "your_new_password");
-        } catch (ClassNotFoundException ex) {
-            throw new SQLException("MySQL JDBC Driver not found: " + ex.getMessage());
-        } catch (SQLException ex) {
-            throw new SQLException("Database connection error: " + ex.getMessage());
+    /**
+     *
+     * @return
+     * @throws SQLException
+     */
+    public static DatabaseManager getInstance() throws SQLException {
+        if (instance == null || !instance.isConnected()) {
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                Connection connection = DriverManager.getConnection(
+                        //"jdbc:mysql://localhost:3306/sentencebuilderdb", //khushi's url
+                        "jdbc:mysql://localhost:3306/SentenceBuilder",
+                        "root",
+                        "your_new_password" //"" Khushi's password
+                );
+                instance = new DatabaseManager(connection);
+               // System.out.println("Database connected successfully!");
+            } catch (ClassNotFoundException e) {
+                throw new SQLException("MySQL JDBC Driver not found: " + e.getMessage());
+            }
         }
-    }*/
+        return instance;
+    }
+
+    public Connection getConnection() {
+        return conn;
+    }
 
     // function to check if db is connected
     /**

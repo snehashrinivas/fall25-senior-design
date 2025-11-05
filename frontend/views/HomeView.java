@@ -1,4 +1,5 @@
 package frontend.views;
+//import SentenceService;
 
 import frontend.SceneManager;
 import javafx.geometry.Pos;
@@ -39,10 +40,16 @@ public class HomeView {
         // when Generate is clicked: go to Feedback with a placeholder sentence
         // call backend with wordField.getText() to get the real sentence
         btnGenerate.setOnAction(e -> {
-            String firstWord = wordField.getText().trim();
+          String firstWord = wordField.getText().trim();
+           // if (!firstWord.isEmpty()) {
+             //   String result = sentenceService.generateSentence(firstWord);
+               // MainView.setCenter(FeedbackView.create(result), "Feedback");
+            //}
             String sentence  = firstWord.isEmpty()
                     ? "The quick brown fox jumps over the lazy dog." //placeholder for now
                     : firstWord + " ... (generated continuation)";
+
+
             MainView.setCenter(FeedbackView.create(sentence), "Feedback");
         });
 

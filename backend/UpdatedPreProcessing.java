@@ -1,8 +1,8 @@
-/*
+package backend;/*
 This program takes in a text file, parses its words, cleans their contents, and stores them in a database.
 Cleaning words involves converting accented letters to their regular characters, removing miscallaneous
 characters, converting words to lowercase, and adding end of sentence tokens. Lines are processed
-one at a time, split into tokens, cleaned, and inserted into the database through the DatabaseManager
+one at a time, split into tokens, cleaned, and inserted into the database through the backend.backend.DatabaseManager
 object. End of sentences are marked with "</s>".
 
 The main purpose of this program is to count the total number of words in the file, store word frequency counts,
@@ -22,8 +22,8 @@ public class UpdatedPreProcessing {
     private static DatabaseManager dbManager = null;
 
 
-    public UpdatedPreProcessing(Connection conn, DatabaseManager dbManager) {
-        UpdatedPreProcessing.conn = conn; // assign to static member
+    public UpdatedPreProcessing(DatabaseManager dbManager) throws SQLException {//Connection conn, backend.backend.DatabaseManager dbManager) {
+        UpdatedPreProcessing.conn = dbManager.getConnection(); // assign to static member
         UpdatedPreProcessing.dbManager = dbManager;
     }
 

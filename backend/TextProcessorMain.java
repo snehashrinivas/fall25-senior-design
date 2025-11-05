@@ -1,27 +1,22 @@
-import java.sql.*;
+package backend;
+
+import backend.BigramProcessor;
+import backend.DatabaseManager;
 
 public class TextProcessorMain {
     public static void main(String[] args) {
         try {
-            // 1. Create database connection
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection conn = DriverManager.getConnection(
-                    //"jdbc:mysql://localhost:3306/sentencebuilderdb", //khushi's url
-                    "jdbc:mysql://localhost:3306/SentenceBuilder",
-                    "root",
-                    "your_new_password"
-                    //"" Khushi's password
-            );
-
-            // 2. Create DatabaseManager
-            DatabaseManager dbManager = new DatabaseManager(conn);
+            // Create backend.backend.DatabaseManager
+            //backend.backend.DatabaseManager dbManager = new backend.backend.DatabaseManager(conn);
+            DatabaseManager dbManager = DatabaseManager.getInstance();
+           // Connection conn = dbManager.getConnection();
 
             // 3. Check connection
             if (dbManager.isConnected()) {
                 System.out.println("Database connected successfully!");
 
                 // 4. Run TextPreProcessor
-                BigramProcessor processor = new BigramProcessor(conn, dbManager);
+                BigramProcessor processor = new BigramProcessor(dbManager); //conn, dbManager);
                 BigramProcessor.run();
             } else {
                 System.err.println("Failed to connect to database");
