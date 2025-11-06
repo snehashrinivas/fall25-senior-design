@@ -211,7 +211,7 @@ public class BigramProcessor {
      */
     public static void run() {
         final boolean smoothing = true;
-        final String prefixSentence = "The";
+        final String prefixSentence = "Hello";
         String newSentence = generateSentence(prefixSentence, 10, smoothing);
         System.out.println("New sentence: " + newSentence);
         ArrayList<String> possibleNextWords = nextWords(prefixSentence, smoothing);

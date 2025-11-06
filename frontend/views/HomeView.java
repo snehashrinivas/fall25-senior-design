@@ -12,6 +12,7 @@ import javafx.scene.layout.VBox;
 import frontend.views.MainView;
 import frontend.views.FeedbackView;
 import frontend.views.AutocompleteView;
+import frontend.services.SentenceService;
 
 public class HomeView {
     public static Parent create() {
@@ -31,7 +32,7 @@ public class HomeView {
 
         // primary actions
         Button btnGenerate = new Button("Generate Sentence");
-        Button btnAuto     = new Button("Auto Complete");
+        Button btnAuto = new Button("Auto Complete");
 
         // disable actions when input is empty
         btnGenerate.disableProperty().bind(wordField.textProperty().isEmpty());
@@ -40,18 +41,34 @@ public class HomeView {
         // when Generate is clicked: go to Feedback with a placeholder sentence
         // call backend with wordField.getText() to get the real sentence
         btnGenerate.setOnAction(e -> {
-          String firstWord = wordField.getText().trim();
-           // if (!firstWord.isEmpty()) {
-             //   String result = sentenceService.generateSentence(firstWord);
-               // MainView.setCenter(FeedbackView.create(result), "Feedback");
-            //}
-            String sentence  = firstWord.isEmpty()
-                    ? "The quick brown fox jumps over the lazy dog." //placeholder for now
-                    : firstWord + " ... (generated continuation)";
+            String firstWord = wordField.getText().trim();
+            if (!firstWord.isEmpty()) {
+                Label loading = new Label("Generating sentence...");
+                loading.setStyle("-fx-font-size: 14; -fx-text-fill: #666;");
+                MainView.setCenter(loading, "Generating...");
+            }
 
+            try {
+                // Get the SentenceService instance
+                SentenceService service = SentenceService.getInstance();
 
-            MainView.setCenter(FeedbackView.create(sentence), "Feedback");
-        });
+                // Generate sentence with the user's input
+                String generatedSentence = service.generateSentence(firstWord);
+
+                // Navigate to Feedback view with the generated sentence
+                MainView.setCenter(FeedbackView.create(generatedSentence), "Feedback");
+
+            } catch (Exception ex) {
+                // If something goes wrong, show an error message
+                System.err.println("Error: " + ex.getMessage());
+                ex.printStackTrace();
+
+                Label errorLabel = new Label("Error: Could not generate sentence.\nPlease try again.");
+                errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 14;");
+                MainView.setCenter(errorLabel, "Error");
+        }
+
+    });
 
         // when Auto Complete is clicked: go to Autocomplete with 3 options
         // fetch real suggestions using firstWord

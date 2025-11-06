@@ -24,6 +24,17 @@ public class FeedbackView {
         Label lbl1 = new Label("Generated Sentence:");
         Label lblSentence = new Label(sentence); // the sentence passed in from previous screen
 
+        lblSentence.setWrapText(true);  // Allow text to wrap if it's long
+        lblSentence.setStyle(
+                "-fx-font-size: 16; " +
+                        "-fx-padding: 15; " +
+                        "-fx-background-color: #f5f5f5; " +
+                        "-fx-background-radius: 8; " +
+                        "-fx-border-color: #ddd; " +
+                        "-fx-border-radius: 8; " +
+                        "-fx-border-width: 1;"
+        );
+        lblSentence.setMaxWidth(400);   // Limit width for better readability
         // ask for feedback
         Label lbl2 = new Label("Provide Feedback:");
 
@@ -43,10 +54,17 @@ public class FeedbackView {
                 MainView.setCenter(HomeView.create(), "Sentence Builder - Home")
         );
 
-        // on Finish: (optionally) get rating, then navigate to the Thank You page
-        btnFinish.setOnAction(e ->
-                MainView.setCenter(ThankYouView.create(), "Thank You")
-        );
+        // on Finish: (optionally) get rating, then navigate to the page
+        btnFinish.setOnAction(e -> {
+            int rating = stars.getRating();
+            System.out.println("User rated the sentence: " + rating + " stars");
+            System.out.println("Generated sentence was: " + sentence);
+            MainView.setCenter(ThankYouView.create(), "Thank You");
+        });
+
+        // Put buttons in a row
+        HBox buttonRow = new HBox(10, btnRegenerate, btnFinish);
+        buttonRow.setAlignment(Pos.CENTER);
 
         // assemble the screen in order
         root.getChildren().addAll(
