@@ -88,6 +88,55 @@ public class BigramProcessor {
     }
 
     /**
+     * From the prefix sentence generate a list of all possible next words and their probabilities
+     * @param prefixSentence String - Starting point for the next possible words
+     * @param smoothing      boolean - determines if laplace smoothing will be applied when calculated the bigram probability
+     * @return               ArrayList<String> - List of next possible words sorted by how likely they are to appear
+     * Written by Andersen Breyel
+     */
+    private static ArrayList<String> getNextWords(String prefixSentence, boolean smoothing) {
+        // Tokenize the sentence into an array of words by splitting it on whitespaces
+        String[] tokenizedSentence = prefixSentence.split(" ");
+        // Convert to lowercase and clean each word so they match words in the database
+        // String[] preprocessedSentence = preprocessSentence(tokenizedSentence);
+        // Calculate the next words using the last word of the prefix sentence
+        //preprocessedSentence[preprocessedSentence.length() - 1];
+        //int str_length = tokenizedSentence.length - 1;
+        String prefixWord = tokenizedSentence[tokenizedSentence.length - 1].toLowerCase();
+        // Create an array list of all the words that succeed the current word in the Relationships table
+        ArrayList<String> bigrams = db.getPossibleBigrams(prefixWord);
+        // List of sorted words to be returned
+        ArrayList<String> sortedList = new ArrayList<String>();
+        // Hashmap of unsorted word-bigram probability pairs
+        HashMap<String, Double> unsortedList = new HashMap<String, Double>();
+        // If the list of possible words is empty print and error
+        if(bigrams.isEmpty()) {
+            System.out.println("error word no suffixes found");
+            return sortedList;
+        }
+        // For each word in the possible words list calculate its probability and put them into the hash map
+        for (String newWord : bigrams) {
+            Double newProb = BigramProbability(prefixWord, newWord, smoothing);
+            unsortedList.put(newWord, newProb);
+        }
+        // Sort the hash map based on its probabilities and return a sorted list of words
+        sortedList = sortHashMap(unsortedList);
+        return sortedList;
+    }
+
+    /**
+     * Function to pick a random word from an array of 3
+     * @param possibleWords Array of Strings representing the 3 most likely next words
+     * @return              String representing the random word chosen
+     * Written by Andersen Breyel
+     */
+    private static String pickFromThree(String[] possibleWords) {
+        // Generate random number from 0-2 inclusive
+        int randomNum = (int)(Math.random() * 3);
+        return possibleWords[randomNum];
+    }
+
+    /**
      * Uses bigram probabilities to generate the next n words of a given prefix sentence or until the eos token is generated
      * @param prefixSentence String - Starting point for the generated sentence
      * @param n              int - max number of words to be generated
@@ -116,33 +165,11 @@ public class BigramProcessor {
                 System.out.println("error word not found");
                 break;
             } else {
-                // Create an array list of all the words that succeed the current word in the Relationships table
-                ArrayList<String> bigrams = db.getPossibleBigrams(currentWord);
-
-                System.out.println(currentWord + ": ");
-                //for (String word : bigrams) {
-                    //System.out.println(word);
-                //}
-
-                // If the list is empty print an error and exit
-                if (bigrams.isEmpty()) {
-                    System.out.println("no bigrams found");
-                    return generatedSentence;
-                } else {
-                    // Otherwise for each word in the list compute its probability and compare to the old word
-                    for (int j = 0; j < bigrams.size(); j++) {
-                        // Get the next word
-                        String potentialWord = bigrams.get(j);
-                        // Compute the new word's probability
-                        newProb = BigramProbability(currentWord, potentialWord, smoothing);
-                        // If the new word has a higher probability update the highest probability and candidate next word
-                        if (newProb > highestProb) {
-                            highestProb = newProb;
-                            nextWord = potentialWord;
-                        }
-                        //System.out.println(currentWord + ", potenital next word: " + potentialWord + ", probability: " + newProb);
-
-                    }
+                // Get the candidates for the next possible word
+                ArrayList<String> nextPossibleWords = getNextWords(currentWord, smoothing);
+                // Store the 3 highest candidates in an arrray to pick one at random
+                String[] topThree = new String[]{nextPossibleWords.get(0), nextPossibleWords.get(1), nextPossibleWords.get(2)};
+                nextWord = pickFromThree(topThree);
                     // Append the new word to the generated sentence
                     generatedSentence = generatedSentence + nextWord + " ";
 
@@ -153,48 +180,13 @@ public class BigramProcessor {
                     }
                     // Update the current word to be the newly appended word
                     currentWord = nextWord;
-                }
+
             }
         }
         return generatedSentence;
     }
 
-    /**
-     * From the prefix sentence generate a list of all possible next words and their probabilities
-     * @param prefixSentence String - Starting point for the next possible words
-     * @param smoothing      boolean - determines if laplace smoothing will be applied when calculated the bigram probability
-     * @return               ArrayList<String> - List of next possible words sorted by how likely they are to appear
-     * Written by Andersen Breyel
-     */
-    private static ArrayList<String> nextWords(String prefixSentence, boolean smoothing) {
-        // Tokenize the sentence into an array of words by splitting it on whitespaces
-        String[] tokenizedSentence = prefixSentence.split(" ");
-        // Convert to lowercase and clean each word so they match words in the database
-       // String[] preprocessedSentence = preprocessSentence(tokenizedSentence);
-        // Calculate the next words using the last word of the prefix sentence
-        //preprocessedSentence[preprocessedSentence.length() - 1];
-        //int str_length = tokenizedSentence.length - 1;
-        String prefixWord = tokenizedSentence[tokenizedSentence.length - 1].toLowerCase();
-        // Create an array list of all the words that succeed the current word in the Relationships table
-        ArrayList<String> bigrams = db.getPossibleBigrams(prefixWord);
-        // List of sorted words to be returned
-        ArrayList<String> sortedList = new ArrayList<String>();
-        // Hashmap of unsorted word-bigram probability pairs
-        HashMap<String, Double> unsortedList = new HashMap<String, Double>();
-        // If the list of possible words is empty print and error
-        if(bigrams.isEmpty()) {
-            System.out.println("error word no suffixes found");
-            return sortedList;
-        }
-        // For each word in the possible words list calculate its probability and put them into the hash map
-        for (String newWord : bigrams) {
-            Double newProb = BigramProbability(prefixWord, newWord, smoothing);
-            unsortedList.put(newWord, newProb);
-        }
-        // Sort the hash map based on its probabilities and return a sorted list of words
-        sortedList = sortHashMap(unsortedList);
-        return sortedList;
-    }
+
 
     /**
      * Driver method to process text
@@ -205,12 +197,11 @@ public class BigramProcessor {
         final String prefixSentence = "Hi I am";
         String newSentence = generateSentence(prefixSentence, 10, smoothing);
         System.out.println("New sentence: " + newSentence);
-        ArrayList<String> possibleNextWords = nextWords(prefixSentence, smoothing);
+        ArrayList<String> possibleNextWords = getNextWords(prefixSentence, smoothing);
         for (String nextWord : possibleNextWords) {
             System.out.println(nextWord);
         }
     }
-
 }
 
     
