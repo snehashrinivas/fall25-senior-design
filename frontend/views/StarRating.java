@@ -1,3 +1,7 @@
+/*
+Written by Rida Basit. RXB210086
+Provides a rating component (user feedback) with clickable stars.
+*/
 package frontend.views;
 
 import javafx.beans.property.IntegerProperty;

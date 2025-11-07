@@ -1,3 +1,8 @@
+/*
+Written by Rida Basit. RXB210086
+Displays a thank you or completion message
+after finishing sentence generation or feedback.
+ */
 package frontend.views;
 
 import frontend.views.MainView;

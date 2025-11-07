@@ -1,3 +1,7 @@
+/*
+Written by Rida Basit. RXB210086
+Holds shared helper methods for creating consistent UI elements
+*/
 package frontend.views;
 
 import javafx.scene.control.Label;

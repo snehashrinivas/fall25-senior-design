@@ -1,3 +1,7 @@
+/*
+Written by Rida Basit. RXB210086
+Shows the final generated sentence or results after user interaction.
+*/
 package frontend.views;
 
 import frontend.views.MainView;
