@@ -1,3 +1,9 @@
+/*
+Written by Rida Basit. RXB210086
+The entry point of the JavaFX app;
+initializes the stage and shows the main scene.
+*/
+
 package frontend;
 
 import javafx.application.Application;

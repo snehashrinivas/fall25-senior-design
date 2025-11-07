@@ -180,15 +180,18 @@ public class MainView {
         Label actionsTitle = new Label("Actions");
         actionsTitle.setStyle("-fx-font-weight: bold;");
         Button btnSentence   = new Button("Sentence Generation");
-        Button btnCompletion = new Button("Word Completion");
         btnSentence.setMaxWidth(Double.MAX_VALUE);
-        btnCompletion.setMaxWidth(Double.MAX_VALUE);
+        //logic to close sidebar and go to HomeView when clicked (Rida Basit)
+        btnSentence.setOnAction(e -> {
+            // Hide sidebar when opening HomeView
+            menuToggle.setSelected(false);
+            root.setLeft(null);
 
-        btnSentence.setOnAction(e -> setCenter(HomeView.create(), "Sentence Builder - Home"));
-        btnCompletion.setOnAction(e -> {
-            String[] options = {"quick", "dog", "man"}; // placeholder
-            setCenter(AutocompleteView.create(options), "Word Completion");
+            // Load main Sentence Builder home screen
+            setCenter(HomeView.create(), "Sentence Builder - Home");
         });
+
+
 
         // Keyboard: Enter = Upload (if enabled), Esc = collapse/expand menu
         sideBox.setOnKeyPressed(e -> {
@@ -202,7 +205,6 @@ public class MainView {
                 new Separator(),
                 actionsTitle,
                 btnSentence,
-                btnCompletion,
                 status
         );
 
