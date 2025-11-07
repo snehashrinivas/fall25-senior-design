@@ -21,8 +21,8 @@ Database Schema:
 - Relationships Table: Maps relationships between consecutive words (bigrams)
 
 JavaFX Frontend:
-- Home: enter first word; buttons for Generate Sentence and Auto Complete
-- Autocomplete: shows three suggested next words with Re-Roll and Finish
+- Home: Choose first word; buttons for Generate Sentence and Auto Complete
+- Word Completion: shows three suggested next words with Re-Roll and Finish
 - Feedback: shows generated sentence and a clickable 1–5 star rating
 - Thank You: confirmation screen with Back to Home
 
