@@ -151,16 +151,18 @@ public class BigramProcessor {
        // String[] preprocessedSentence = preprocessSentence(tokenizedSentence);
         // Start from the last word of the prefix sentence
         String currentWord = tokenizedSentence[(tokenizedSentence.length - 1)];
+        System.out.println("this is " + currentWord);
         String generatedSentence =  prefixSentence + " ";
         // Generate a maximum of n words
         for (int i = 0; i < n; i++) {
             // Don't know what the next word will be
             String nextWord = "";
             // Initialize the highest prob for each word as negative so it will be replaced immediately
-            double highestProb = -1.0;
+            //double highestProb = -1.0;
             // Don't know the next word's probability yet
-            double newProb = 0.0;
+            //double newProb = 0.0;
             // If the word is not in the database print an error and exit
+            System.out.println("entered loop");
             if (!db.wordInDB(currentWord)) {
                 System.out.println("error word not found");
                 break;
@@ -172,6 +174,7 @@ public class BigramProcessor {
                 nextWord = pickFromThree(topThree);
                 // Append the new word to the generated sentence
                 generatedSentence = generatedSentence + nextWord + " ";
+                System.out.println(generatedSentence);
                 // If the newly appended word is the eos token break out of the loop
                 // dbmanager method that returns a boolean, if that word ever ends a sentence just end the sentence
                 if (DatabaseManager.wordEndsSentence(nextWord)) {//nextWord.equals("</s>")) {
@@ -194,6 +197,7 @@ public class BigramProcessor {
     public static void run() {
         final boolean smoothing = true;
         final String prefixSentence = "Hi I am";
+        System.out.println("hello");
         String newSentence = generateSentence(prefixSentence, 10, smoothing);
         System.out.println("New sentence: " + newSentence);
         ArrayList<String> possibleNextWords = getNextWords(prefixSentence, smoothing);
