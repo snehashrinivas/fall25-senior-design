@@ -39,11 +39,11 @@ public class DatabaseManager {
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 Connection connection = DriverManager.getConnection(
-                        "jdbc:mysql://localhost:3306/sentencebuilderdb", //khushi's url
-                        //"jdbc:mysql://localhost:3306/SentenceBuilder",
+                       // "jdbc:mysql://localhost:3306/sentencebuilderdb", //khushi's url
+                        "jdbc:mysql://localhost:3306/SentenceBuilder",
                         "root",
-                        ""
-                        //"your_new_password" //"" Khushi's password
+                       // ""
+                        "your_new_password" //"" Khushi's password
                 );
                 instance = new DatabaseManager(connection);
                // System.out.println("Database connected successfully!");
