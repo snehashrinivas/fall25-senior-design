@@ -1,5 +1,4 @@
-
-/*
+package backend;/*
  * This is a processor class for handling bigram-based language processing operations, calculating probalities to aid in word generation.
  *
  * A bigram is a sequence of two adjacent words in a text.
@@ -16,14 +15,14 @@ import java.sql.*;
 public class BigramProcessor {
     private static DatabaseManager db = null;
     private static Connection conn = null;
-    
 
-    public BigramProcessor(Connection conn, DatabaseManager dbManager) {
-        BigramProcessor.conn = conn; // assign to static member
+
+    public BigramProcessor(DatabaseManager dbManager) throws SQLException {//} conn, backend.backend.DatabaseManager dbManager) {
+        BigramProcessor.conn = dbManager.getConnection(); // assign to static member
         BigramProcessor.db = dbManager;
     }
 
-    
+
 
     /**
      * Sorts a HashMap of words and their probabilities by probability in descending order
@@ -34,16 +33,16 @@ public class BigramProcessor {
     private static ArrayList<String> sortHashMap(HashMap<String, Double> unsortedMap) {
         // convert HashMap entries to a List for sorting
         List<Map.Entry<String, Double>> list = new ArrayList<>(unsortedMap.entrySet());
-        
+
         // Sort the list based on values (probabilities) in descending order
         Collections.sort(list, (o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-        
+
         // Create an ArrayList to store just the words in sorted order
         ArrayList<String> sortedList = new ArrayList<>();
         for (Map.Entry<String, Double> entry : list) {
             sortedList.add(entry.getKey());
         }
-        
+
         return sortedList;
     }
 
@@ -122,6 +121,16 @@ public class BigramProcessor {
         // Sort the hash map based on its probabilities and return a sorted list of words
         sortedList = sortHashMap(unsortedList);
         return sortedList;
+    }
+
+    // New method to allow frontend calls:
+    public String generateFromPrefix(String prefixSentence, int n, boolean smoothing) {
+        if (prefixSentence == null || prefixSentence.isEmpty()) {
+            return "Please enter a starting word.";
+        }
+
+        String sentence = generateSentence(prefixSentence, n, smoothing);
+        return sentence;
     }
 
     /**

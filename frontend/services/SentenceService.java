@@ -1,0 +1,81 @@
+package frontend.services;
+
+import backend.BigramProcessor;
+import backend.DatabaseManager;
+import java.sql.SQLException;
+
+public class SentenceService {
+    private static BigramProcessor processor;
+    private static DatabaseManager dbManager;
+    private static SentenceService instance;
+
+    // Private constructor for singleton pattern
+    private SentenceService(DatabaseManager dbManager, BigramProcessor processor) {
+        this.dbManager = dbManager;
+        this.processor = processor;
+    }
+
+    /**
+     * Initialize the service with database connection
+     * Call this once when the application starts
+     */
+    public static void initialize() throws SQLException {
+        if (instance == null) {
+            dbManager = DatabaseManager.getInstance();
+            processor = new BigramProcessor(dbManager);
+            instance = new SentenceService(dbManager, processor);
+            System.out.println("SentenceService initialized successfully!");
+        }
+    }
+
+    /**
+     * Get the singleton instance
+     */
+    public static SentenceService getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("SentenceService not initialized. Call initialize() first.");
+        }
+        return instance;
+    }
+
+    /**
+     * Generate a sentence starting with the given prefix word
+     * @param prefix The first word of the sentence
+     * @return Generated sentence as a String
+     */
+    public String generateSentence(String prefix) {
+        if (prefix == null || prefix.trim().isEmpty()) {
+            return "Error: Please enter a starting word.";
+        }
+
+        try {
+            // Clean up the prefix (trim whitespace, convert to proper format)
+            String cleanPrefix = prefix.trim();
+
+            // Generate sentence with max 10 words, using smoothing
+            String result = BigramProcessor.generateSentence(cleanPrefix, 10, true);
+
+            // Check if generation was successful
+            if (result == null || result.trim().isEmpty()) {
+                return "Error: Could not generate sentence. Word might not be in database.";
+            }
+
+            return result.trim();
+
+        } catch (Exception e) {
+            System.err.println("Error generating sentence: " + e.getMessage());
+            e.printStackTrace();
+            return "Error: Failed to generate sentence. Please try another word.";
+        }
+    }
+
+    /**
+     * Clean up database connections when application closes
+     */
+    public static void shutdown() {
+        if (dbManager != null) {
+            dbManager.disconnect();
+            System.out.println("SentenceService shut down.");
+        }
+    }
+}
