@@ -1,9 +1,17 @@
+// define package for this class
 package frontend.services;
 
+// import classes from other packages
 import backend.BigramProcessor;
 import backend.DatabaseManager;
 import java.sql.SQLException;
 
+/**
+ * SentenceService class serves as the main link between the frontend and backend.
+ * It utilizes BigramProcessor to generate sentences using the user's inputted word and DatabaseManager to
+ * access the parsed data. The class is implemented as a Singleton — only one instance exists throughout the
+ * application.
+ */
 public class SentenceService {
     private static BigramProcessor processor;
     private static DatabaseManager dbManager;
@@ -18,6 +26,7 @@ public class SentenceService {
     /**
      * Initialize the service with database connection
      * Call this once when the application starts
+     * Written by Khushi Dubey
      */
     public static void initialize() throws SQLException {
         if (instance == null) {
@@ -30,6 +39,7 @@ public class SentenceService {
 
     /**
      * Get the singleton instance
+     * Written by Khushi Dubey
      */
     public static SentenceService getInstance() {
         if (instance == null) {
@@ -42,6 +52,7 @@ public class SentenceService {
      * Generate a sentence starting with the given prefix word
      * @param prefix The first word of the sentence
      * @return Generated sentence as a String
+     * Written by Khushi Dubey
      */
     public String generateSentence(String prefix) {
         if (prefix == null || prefix.trim().isEmpty()) {
@@ -71,6 +82,7 @@ public class SentenceService {
 
     /**
      * Clean up database connections when application closes
+     * Written by Khushi Dubey
      */
     public static void shutdown() {
         if (dbManager != null) {

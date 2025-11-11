@@ -1,0 +1,3 @@
+Hello World! Testing 1 2 3.
+Accents like café and naïve must be normalized.
+Standalone symbols: *, &, %, $, #, ! — ignored as non-alphabetic symbols.
