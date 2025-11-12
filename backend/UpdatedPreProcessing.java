@@ -168,7 +168,9 @@ public class UpdatedPreProcessing {
     private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLException {
         // track total number of words
         int count = 0;
-        ArrayList<String> currentSentence = new ArrayList<>();
+        boolean isItFirstWord = true;
+        String previousWord = null;
+       // ArrayList<String> currentSentence = new ArrayList<>();
 
         // Process the text line by line (newlines are ignored)
         while (textFile.hasNextLine()) {
@@ -185,15 +187,8 @@ public class UpdatedPreProcessing {
                 // skip if any token is empty
                 if (rawToken.isEmpty()) continue;
 
-                // TODO: change logic so we are not importing file each time
-                // initalize a new Scanner for accents file
-                //Scanner accentScanner = importFile("accents.txt");
-
                 // Clean token (removes garbage & converts accents but keeps punctuation)
                 String cleanedWord = cleanWord(rawToken);//, accentScanner); //asciiFile);
-
-                // Close the scanner after use
-                //if (accentScanner != null) accentScanner.close();
 
                 // skip word if it becomes empty after cleaning it
                 if (cleanedWord == null || cleanedWord.isEmpty()) {
@@ -209,38 +204,78 @@ public class UpdatedPreProcessing {
                 if (endsWithPunc) {
                     // Case 1: Only punctuation (e.g., ".")
                     if (cleanedWord.length() == 1) {
-                        currentSentence.add(Character.toString(lastChar));
+                        String punctuation = cleanedWord;
+
+                        // Insert punctuation as end-of-sentence marker
+                        dbManager.insertWord(punctuation, 1, false, true); // we need this function
+                        //currentSentence.add(Character.toString(lastChar));
                         count++;
-                    }
-                    else {
+
+                        // If there was a previous word, insert the bigram relationship
+                        if (previousWord != null) {
+                            dbManager.insertBigram(previousWord, punctuation);
+                        }
+
+                        previousWord = null;
+                        isItFirstWord = true;
+                    } else {
                         // Add the word minus punctuation
-                        String trimmed = cleanedWord.substring(0, cleanedWord.length() - 1);
-                        currentSentence.add(trimmed);
+                        String wordPart = cleanedWord.substring(0, cleanedWord.length() - 1);
+                        String punctuation = Character.toString(lastChar);
+                        //currentSentence.add(trimmed);
+
+                        // Send word part and insert bigram from previous word
+                        dbManager.insertWord(wordPart, 1, isItFirstWord, false);
                         count++;
 
+                        if (previousWord != null) {
+                            dbManager.insertBigram(previousWord, wordPart);
+                        }
+                        previousWord = wordPart;
+
+                        // Send punctuation as end-of-sentence marker
+                        dbManager.insertWord(punctuation, 1, false, true);
                         // Add the punctuation itself as a separate token
-                        currentSentence.add(Character.toString(lastChar));
+                        // currentSentence.add(Character.toString(lastChar));
                         count++;
+
+                        // Insert bigram from word to punctuation
+                        dbManager.insertBigram(wordPart, punctuation);
+                        previousWord = punctuation;
+
+                        isItFirstWord = true;
+                    }
+                } else {
+                    // Regular word without punctuation
+                    dbManager.insertWord(cleanedWord, 1, isItFirstWord, false);
+                    count++;
+
+                    // If there was a previous word, insert the bigram relationship
+                    if (previousWord != null) {
+                        dbManager.insertBigram(previousWord, cleanedWord);
                     }
 
-                        // If it’s a sentence-ending punctuation mark, also add </s>
-                        //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
-                        //currentSentence.add("</s>");
-                        //count++;
+                    previousWord = cleanedWord;
+                    isItFirstWord = false;
+                    // If it’s a sentence-ending punctuation mark, also add </s>
+                    //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
+                    //currentSentence.add("</s>");
+                    //count++;
 
-                        // send word to database for counting
-                        dbManager.countWords(currentSentence);
-                        // clear list to process next sentence
-                        currentSentence.clear();
-                } else {
+                    // send word to database for counting
+                    //dbManager.countWords(currentSentence);
+                    // clear list to process next sentence
+                    //currentSentence.clear();
+                    // } else {
                     // Just add the cleaned word normally
-                    currentSentence.add(cleanedWord);
-                    count++;
+                    // currentSentence.add(cleanedWord);
+                   // count++;
+                    //}
                 }
             }
         }
         // Handle any leftover words at the end (no punctuation)
-        if (!currentSentence.isEmpty()) {
+        /*if (!currentSentence.isEmpty()) {
             // add end of sentence token
             //currentSentence.add("</s>");
             dbManager.countWords(currentSentence);
@@ -250,6 +285,8 @@ public class UpdatedPreProcessing {
             currentSentence.clear();
         }
         // return total number of words processed
+
+         */
         return count;
     }
 
