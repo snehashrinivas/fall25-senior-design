@@ -1,12 +1,14 @@
 /*
- * This class helps show the manu view of the application that can be expanded or collapsed.
+ * This class helps show the menu view of the application that can be expanded or collapsed.
  * It also manages the center content area where different views can be displayed.
  * We can access the menu from any of the other screens, so it is persistent throughout views of the application.
  * Written by Sneha Shrinivas
  */
 
-
 package frontend.views;
+
+import frontend.views.HomeView;
+import frontend.views.Views;
 
 import frontend.UploadStore;
 import javafx.collections.FXCollections;
@@ -28,26 +30,40 @@ public class MainView {
     private static BorderPane root;   // persistent shell
     private static VBox side;         // keep a reference so we can hide/show
     private static ToggleButton menuToggle;
+    private static TitledPane importedPane;
 
     public static Parent create() {
         if (root != null) return root;
 
         root = new BorderPane();
+        root.setStyle("-fx-background-color: " + Views.APP_BG + ";");
 
         // ===== Header with Menu toggle =====
         HBox header = new HBox(10);
         header.setPadding(new Insets(12, 16, 12, 16));
         header.setAlignment(Pos.CENTER_LEFT);
+        header.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-border-color: #e5e7eb;" +
+                        "-fx-border-width: 0 0 1 0;"
+        );
 
         menuToggle = new ToggleButton("☰ Menu");
         menuToggle.setSelected(true);
         menuToggle.setTooltip(new Tooltip("Show/Hide sidebar (Ctrl+M)"));
+        menuToggle.setStyle(
+                "-fx-background-color: transparent;" +
+                        "-fx-border-color: #d1d5db;" +
+                        "-fx-border-radius: 999;" +
+                        "-fx-background-radius: 999;" +
+                        "-fx-padding: 4 10 4 10;"
+        );
 
         Label title = Views.title("Sentence Builder");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Label subtitle = new Label("Sentence Generation");
-        subtitle.setStyle("-fx-font-size: 13; -fx-text-fill: #666;");
+        subtitle.setStyle("-fx-font-size: 13; -fx-text-fill: " + Views.TEXT_MUTED + ";");
 
         header.getChildren().addAll(menuToggle, title, spacer, subtitle);
 
@@ -80,17 +96,25 @@ public class MainView {
         VBox sideBox = new VBox(12);
         sideBox.setPadding(new Insets(12));
         sideBox.setPrefWidth(280);
-        sideBox.setStyle("-fx-background-color: #fafafa; -fx-border-color: #ddd; -fx-border-width: 0 1 0 0;");
 
-        // ===== File Upload (now inside a collapsible TitledPane) =====
-        // Choose + Upload
-        Button btnChoose = new Button("Choose Files…");
-        Button btnUpload = new Button("Upload");
+        //Wrap sidebar contents in a card
+        VBox inner = new VBox(12);
+        inner.setPadding(new Insets(8));
+        inner.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-background-radius: 16;" +
+                        "-fx-border-radius: 16;" +
+                        "-fx-border-color: #e5e7eb;" +
+                        "-fx-border-width: 1;"
+        );
+
+        // ===== File Upload (collapsible) =====
+        Button btnChoose = Views.secondaryButton("Choose Files…");
+        Button btnUpload = Views.primaryButton("Upload");
         btnUpload.setDisable(true);
         HBox chooseRow = new HBox(8, btnChoose, btnUpload);
         chooseRow.setAlignment(Pos.CENTER_LEFT);
 
-        // Staging list
         ObservableList<File> staging = FXCollections.observableArrayList();
         ListView<File> stagingList = new ListView<>(staging);
         stagingList.setPlaceholder(new Label("No files selected."));
@@ -102,15 +126,16 @@ public class MainView {
             }
         });
 
-        Button btnRemove = new Button("Remove");
-        Button btnClear  = new Button("Clear");
+        Button btnRemove = Views.secondaryButton("Remove");
+        Button btnClear  = Views.secondaryButton("Clear");
+        HBox stageActions = new HBox(8, btnRemove, btnClear);
+        stageActions.setAlignment(Pos.CENTER_RIGHT);
+
         btnRemove.setOnAction(e -> {
             File sel = stagingList.getSelectionModel().getSelectedItem();
             if (sel != null) staging.remove(sel);
         });
         btnClear.setOnAction(e -> staging.clear());
-        HBox stageActions = new HBox(8, btnRemove, btnClear);
-        stageActions.setAlignment(Pos.CENTER_RIGHT);
 
         VBox stagingBox = new VBox(8,
                 new Label("Selected (not uploaded):"),
@@ -118,18 +143,23 @@ public class MainView {
                 stageActions
         );
         stagingBox.setPadding(new Insets(8));
-        stagingBox.setStyle("-fx-border-color:#ddd; -fx-border-radius:8; -fx-background-radius:8; -fx-border-width:1;");
+        stagingBox.setStyle(
+                "-fx-border-color:#e5e7eb;" +
+                        "-fx-border-radius:10;" +
+                        "-fx-background-radius:10;" +
+                        "-fx-border-width:1;"
+        );
 
         VBox uploadContent = new VBox(10, chooseRow, stagingBox);
         TitledPane uploadPane = new TitledPane("File Upload", uploadContent);
-        uploadPane.setExpanded(false); // collapsed by default
+        uploadPane.setExpanded(false);
 
         // Enable upload when something is staged
         staging.addListener((javafx.collections.ListChangeListener<? super File>) c ->
                 btnUpload.setDisable(staging.isEmpty())
         );
 
-        // Choose and Upload actions
+        // Choose & upload
         btnChoose.setOnAction(e -> {
             FileChooser fc = new FileChooser();
             fc.setTitle("Choose Files");
@@ -138,20 +168,9 @@ public class MainView {
         });
 
         Label status = new Label();
-        status.setStyle("-fx-text-fill:#2e7d32; -fx-font-size:12;");
+        status.setStyle("-fx-text-fill:#16a34a; -fx-font-size:12;");
 
-        btnUpload.setOnAction(e -> {
-            if (!staging.isEmpty()) {
-                int n = staging.size();
-                UploadStore.addAll(staging);
-                staging.clear();
-                status.setText("Uploaded " + n + " file" + (n == 1 ? "" : "s") + ".");
-                // Optionally auto-expand Imported Files after first upload
-                importedPane.setExpanded(true);
-            }
-        });
-
-        // ===== Imported Files (already collapsible) =====
+        // ===== Imported Files =====
         ListView<File> importedList = new ListView<>(UploadStore.getImported());
         importedList.setPlaceholder(new Label("No files uploaded."));
         importedList.setPrefHeight(120);
@@ -173,33 +192,32 @@ public class MainView {
                 }
             }
         });
-        importedPane = new TitledPane("Imported Files", importedList);
-        importedPane.setExpanded(false); // collapsed by default
 
-        // ===== Actions =====
+        importedPane = new TitledPane("Imported Files", importedList);
+        importedPane.setExpanded(false);
+
+        btnUpload.setOnAction(e -> {
+            if (!staging.isEmpty()) {
+                int n = staging.size();
+                UploadStore.addAll(staging);
+                staging.clear();
+                status.setText("Uploaded " + n + " file" + (n == 1 ? "" : "s") + ".");
+                importedPane.setExpanded(true);
+            }
+        });
+
         Label actionsTitle = new Label("Actions");
-        actionsTitle.setStyle("-fx-font-weight: bold;");
-        Button btnSentence   = new Button("Sentence Generation");
+        actionsTitle.setStyle("-fx-font-weight: bold; -fx-text-fill:" + Views.TEXT_DEFAULT + ";");
+
+        Button btnSentence = Views.primaryButton("Sentence Generation");
         btnSentence.setMaxWidth(Double.MAX_VALUE);
-        //logic to close sidebar and go to HomeView when clicked (Rida Basit)
         btnSentence.setOnAction(e -> {
-            // Hide sidebar when opening HomeView
             menuToggle.setSelected(false);
             root.setLeft(null);
-
-            // Load main Sentence Builder home screen
             setCenter(HomeView.create(), "Sentence Builder - Home");
         });
 
-
-
-        // Keyboard: Enter = Upload (if enabled), Esc = collapse/expand menu
-        sideBox.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER && !btnUpload.isDisabled()) btnUpload.fire();
-            if (e.getCode() == KeyCode.ESCAPE) menuToggle.fire();
-        });
-
-        sideBox.getChildren().addAll(
+        inner.getChildren().addAll(
                 uploadPane,
                 importedPane,
                 new Separator(),
@@ -208,20 +226,25 @@ public class MainView {
                 status
         );
 
+        sideBox.getChildren().add(inner);
+
+        // Keyboard shortcuts for sidebar
+        sideBox.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER && !btnUpload.isDisabled()) btnUpload.fire();
+            if (e.getCode() == KeyCode.ESCAPE) menuToggle.fire();
+        });
+
         return sideBox;
     }
-
-    // Keep a static ref so we can expand Imported after upload
-    private static TitledPane importedPane;
 
     /** Swap the center content and update the subtitle in header. */
     public static void setCenter(Parent content, String subtitle) {
         if (root == null) create();
         StackPane wrapper = new StackPane(content);
-        wrapper.setPadding(new Insets(16));
+        wrapper.setPadding(new Insets(24));
+        wrapper.setStyle("-fx-background-color: " + Views.APP_BG + ";");
         root.setCenter(wrapper);
 
-        // update subtitle (header is an HBox: [toggle, title, spacer, subtitle])
         HBox header = (HBox) root.getTop();
         if (header != null && header.getChildren().size() >= 4) {
             Label sub = (Label) header.getChildren().get(3);

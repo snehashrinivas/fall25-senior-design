@@ -4,40 +4,48 @@ Displays a thank you or completion message
 after finishing sentence generation or feedback.
  */
 package frontend.views;
-
 import frontend.views.MainView;
 import frontend.views.HomeView;
+import frontend.views.Views;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-import javafx.animation.PauseTransition;
-import javafx.util.Duration;
 
 public class ThankYouView {
+
     public static Parent create() {
-        // main vertical layout with 18px spacing between children
-        VBox root = new VBox(18);
-        root.setAlignment(Pos.CENTER); // center all children
-        root.setStyle("-fx-padding: 24;"); // outer padding
+        VBox root = new VBox();
+        root.setAlignment(Pos.CENTER);
+        root.setStyle(
+                "-fx-background-color: " + Views.APP_BG + ";" +
+                        "-fx-padding: 32;"
+        );
 
-        // app title at the top
-        Label title = new Label("Sentence Builder");
-        title.setStyle("-fx-font-size: 22; -fx-font-weight: bold;");
+        Label title = Views.title("Sentence Builder");
+        Label msg   = new Label("Thank you for using Sentence Builder!");
+        msg.setStyle("-fx-font-size: 16; -fx-text-fill: " + Views.TEXT_DEFAULT + ";");
 
-        // thank you message
-        Label msg = new Label("Thank you for using Sentence Builder!");
-        msg.setStyle("-fx-font-size: 18;");
+        Label sub = new Label("You can go back and create another sentence anytime.");
+        sub.setStyle("-fx-font-size: 13; -fx-text-fill: " + Views.TEXT_MUTED + ";");
 
-        // return to Home screen
-        Button back = new Button("Back to Home");
-        back.setDefaultButton(true);           // pressing Enter activates this
+        Button back = Views.primaryButton("Back to Home");
+        back.setDefaultButton(true);
         back.setOnAction(e ->
                 MainView.setCenter(HomeView.create(), "Sentence Generation")
         );
-        // assemble the screen
-        root.getChildren().addAll(title, msg, back);
+
+        VBox card = Views.card(
+                title,
+                msg,
+                sub,
+                back
+        );
+        card.setSpacing(12);
+        card.setMaxWidth(420);
+
+        root.getChildren().add(card);
         return root;
     }
 }

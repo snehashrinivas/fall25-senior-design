@@ -1,6 +1,7 @@
 // define package for this class
 package frontend.services;
 
+
 // import classes from other packages
 import backend.BigramProcessor;
 import backend.DatabaseManager;
