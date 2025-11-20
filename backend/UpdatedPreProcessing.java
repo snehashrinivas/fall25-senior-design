@@ -235,8 +235,6 @@ public class UpdatedPreProcessing {
 
                         // Send punctuation as end-of-sentence marker
                         dbManager.insertWord(punctuation, 1, false, true);
-                        // Add the punctuation itself as a separate token
-                        // currentSentence.add(Character.toString(lastChar));
                         count++;
 
                         // Insert bigram from word to punctuation
@@ -257,36 +255,9 @@ public class UpdatedPreProcessing {
 
                     previousWord = cleanedWord;
                     isItFirstWord = false;
-                    // If it’s a sentence-ending punctuation mark, also add </s>
-                    //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
-                    //currentSentence.add("</s>");
-                    //count++;
-
-                    // send word to database for counting
-                    //dbManager.countWords(currentSentence);
-                    // clear list to process next sentence
-                    //currentSentence.clear();
-                    // } else {
-                    // Just add the cleaned word normally
-                    // currentSentence.add(cleanedWord);
-                   // count++;
-                    //}
                 }
             }
         }
-        // Handle any leftover words at the end (no punctuation)
-        /*if (!currentSentence.isEmpty()) {
-            // add end of sentence token
-            //currentSentence.add("</s>");
-            dbManager.countWords(currentSentence);
-
-            // increment count for remaining tokens
-            count += currentSentence.size();
-            currentSentence.clear();
-        }
-        // return total number of words processed
-
-         */
         return count;
     }
 
