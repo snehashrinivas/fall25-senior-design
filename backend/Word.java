@@ -10,6 +10,8 @@ public class Word {
     private String previousWord;
 
     // Constructor for creating a Word object, has all the attributes + previous word
+    // should nto be bools, should be counts
+    // prev word should be handled in relationships
     public Word(String wordText, boolean isStartWord, boolean isEndWord, int frequency, String previousWord) {
         this.wordText = wordText;
         this.isStartWord = isStartWord;

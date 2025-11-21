@@ -4,6 +4,8 @@ public class Relationship {
     private String nextWord;
     private int combinationCount;
 
+    // add comments
+    // keep ids, not strings, for relationships
     public Relationship(String currentWord, String nextWord, int combinationCount) {
         this.currentWord = currentWord;
         this.nextWord = nextWord;
