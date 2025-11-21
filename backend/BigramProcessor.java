@@ -1,4 +1,5 @@
-package backend;/*
+package backend;
+/*
  * This is a processor class for handling bigram-based language processing operations, calculating probalities to aid in word generation.
  *
  * A bigram is a sequence of two adjacent words in a text.
@@ -16,13 +17,10 @@ public class BigramProcessor {
     private static DatabaseManager db = null;
     private static Connection conn = null;
 
-
-    public BigramProcessor(DatabaseManager dbManager) throws SQLException {//} conn, backend.backend.DatabaseManager dbManager) {
+    public BigramProcessor(DatabaseManager dbManager) throws SQLException {
         BigramProcessor.conn = dbManager.getConnection(); // assign to static member
         BigramProcessor.db = dbManager;
     }
-
-
 
     /**
      * Sorts a HashMap of words and their probabilities by probability in descending order
@@ -79,7 +77,7 @@ public class BigramProcessor {
             bigramCount += 1;
             prefixUnigramCount += vocabSize;
             prob = (double) bigramCount / prefixUnigramCount;
-        // Otherwise calculate the probability as normal
+            // Otherwise calculate the probability as normal
         } else {
             prob = (double) bigramCount / prefixUnigramCount;
         }
@@ -99,17 +97,18 @@ public class BigramProcessor {
         // Convert to lowercase and clean each word so they match words in the database
         // String[] preprocessedSentence = preprocessSentence(tokenizedSentence);
         // Calculate the next words using the last word of the prefix sentence
-        //preprocessedSentence[preprocessedSentence.length() - 1];
-        //int str_length = tokenizedSentence.length - 1;
+        // preprocessedSentence[preprocessedSentence.length() - 1];
+        // int str_length = tokenizedSentence.length - 1;
         String prefixWord = tokenizedSentence[tokenizedSentence.length - 1].toLowerCase();
         // Create an array list of all the words that succeed the current word in the Relationships table
+
         ArrayList<String> bigrams = db.getPossibleBigrams(prefixWord);
         // List of sorted words to be returned
-        ArrayList<String> sortedList = new ArrayList<String>();
+        ArrayList<String> sortedList = new ArrayList<>();
         // Hashmap of unsorted word-bigram probability pairs
-        HashMap<String, Double> unsortedList = new HashMap<String, Double>();
+        HashMap<String, Double> unsortedList = new HashMap<>();
         // If the list of possible words is empty print and error
-        if(bigrams.isEmpty()) {
+        if (bigrams.isEmpty()) {
             System.out.println("error word no suffixes found");
             return sortedList;
         }
@@ -134,16 +133,67 @@ public class BigramProcessor {
     }
 
     /**
-     * Function to pick a random word from an array of 3
-     * @param possibleWords Array of Strings representing the 3 most likely next words
-     * @return              String representing the random word chosen
-     * Written by Andersen Breyel
+     * Function to pick a random word based on probability weights
+     * @param candidates HashMap of words and their probabilities
+     * @return String representing the random word chosen
+     * Written by Andersen Breyel and edited by Rida Basit
      */
-    private static String pickFromThree(String[] possibleWords) {
-        // Generate random number from 0-2 inclusive
-        int randomNum = (int)(Math.random() * 3);
-        return possibleWords[randomNum];
+    private static String pickFromProbabilities(HashMap<String, Double> candidates) {
+        if (candidates.isEmpty()) return "";//prevent crash if no candidates
+        //sum up all probabilities to normalize the random selection range
+        double total = candidates.values().stream().mapToDouble(Double::doubleValue).sum();
+        //generate a random number between 0 and the total probability sum
+        double rand = Math.random() * total;
+        //keep track of running total while looping
+        double cumulative = 0.0;
+
+        for (Map.Entry<String, Double> entry : candidates.entrySet()) {
+            //add this word’s probability to the running total
+            cumulative += entry.getValue();
+            //when threshold is reached, use that word
+            if (rand <= cumulative) {
+                return entry.getKey();
+            }
+        }
+        // fallback (shouldn't happen)
+        return candidates.keySet().iterator().next();
     }
+
+    /**
+     * Public helper for the frontend: get a list of possible next words
+     * using the same bigram logic as generateSentence.
+     *
+     * @param prefixSentence current sentence (we use the last word inside)
+     * @param smoothing      whether to use Laplace smoothing
+     * @return               list of next words sorted by probability
+     */
+    /**
+     * Public helper for the frontend: get a list of possible next words,
+     * sorted by probability, using DatabaseManager's bigram probabilities.
+     * This is much faster than calling BigramProbability for every pair.
+     * Written by Rida Basit
+     */
+    public static java.util.List<String> getNextWordSuggestions(String prefixSentence, boolean smoothing) {
+        if (prefixSentence == null || prefixSentence.isBlank()) {
+            return new ArrayList<>();
+        }
+        // Take the last word of the sentence
+        String[] tokens = prefixSentence.split(" ");
+        String prefixWord = tokens[tokens.length - 1].toLowerCase();
+        // Ask the DB once for all next-word probabilities for this prefix
+        HashMap<String, Double> nextProbs = db.getBigramProbabilities(prefixWord, smoothing);
+        if (nextProbs.isEmpty()) {
+            return new ArrayList<>();
+        }
+        // Sort by probability descending and return just the words
+        ArrayList<String> sorted = sortHashMap(nextProbs);
+        // (Optional tiny optimization: only keep top N, e.g. 50)
+        // if (sorted.size() > 50) {
+        //     return new ArrayList<>(sorted.subList(0, 50));
+        // }
+        return sorted;
+    }
+
 
     /**
      * Uses bigram probabilities to generate the next n words of a given prefix sentence or until the eos token is generated
@@ -151,88 +201,48 @@ public class BigramProcessor {
      * @param n              int - max number of words to be generated
      * @param smoothing      boolean - determines if laplace smoothing will be applied when calculated the bigram probability
      * @return               String - the sentence generated by the model based on the prefix sentence
-     * Written by Andersen Breyel
+     * Written by Andersen Breyel and edited by Rida Basit
      */
     public static String generateSentence(String prefixSentence, int n, boolean smoothing) {
         // Tokenize the sentence into an array of words by splitting it on whitespaces
         String[] tokenizedSentence = prefixSentence.split(" ");
         // Convert to lowercase and clean each word so they match words in the database
-       // String[] preprocessedSentence = preprocessSentence(tokenizedSentence);
+        // String[] preprocessedSentence = preprocessSentence(tokenizedSentence);
         // Start from the last word of the prefix sentence
-        String currentWord = tokenizedSentence[(tokenizedSentence.length - 1)];
+        String currentWord = tokenizedSentence[tokenizedSentence.length - 1];
         System.out.println("this is " + currentWord);
-        String generatedSentence =  prefixSentence + " ";
+        String generatedSentence = prefixSentence + " ";
+
         // Generate a maximum of n words
+        //add up to n words to the sentence.
         for (int i = 0; i < n; i++) {
-            // Don't know what the next word will be
-            String nextWord = "";
-            // Initialize the highest prob for each word as negative so it will be replaced immediately
-            //double highestProb = -1.0;
-            // Don't know the next word's probability yet
-            //double newProb = 0.0;
-            // If the word is not in the database print an error and exit
             System.out.println("entered loop");
+            //current word exists in the database.
             if (!db.wordInDB(currentWord)) {
                 System.out.println("error word not found");
                 break;
-            } else {
-                // Get the candidates for the next possible word
-                ArrayList<String> nextPossibleWords = getNextWords(currentWord, smoothing);
-
-                // Store the 3 highest candidates in an array to pick one at random
-                String firstHighestWord = "";
-                String secondHighestWord = "";
-                String thirdHighestWord = "";
-                double firstHighestProb = -1.0;
-                double secondHighestProb = -1.0;
-                double thirdHighestProb = -1.0;
-                double currentProb = 0.0;
-                for (int j = 0; j < nextPossibleWords.size(); j++) {
-                    currentProb =  BigramProbability(currentWord, nextPossibleWords.get(j), smoothing);
-                    // If the current probability is higher than the current highest probability shift
-                    // second to third then first to second becore replacing first with the new values
-                    if (currentProb > firstHighestProb) {
-                        thirdHighestWord = secondHighestWord;
-                        thirdHighestProb = secondHighestProb;
-                        secondHighestWord = firstHighestWord;
-                        secondHighestProb = firstHighestProb;
-                        firstHighestWord = nextPossibleWords.get(j);
-                        firstHighestProb = currentProb;
-                        // If the new probability is only higher than the second highest probability shift second to third
-                        // and replace the second proability
-                    } else if(currentProb > secondHighestProb) {
-                        thirdHighestWord = secondHighestWord;
-                        thirdHighestProb =  secondHighestProb;
-                        secondHighestWord = nextPossibleWords.get(j);
-                        secondHighestProb = currentProb;
-                        // If the new probability is only higher than the third probability
-                    } else if (currentProb > thirdHighestProb) {
-                        thirdHighestWord = nextPossibleWords.get(j);
-                        thirdHighestProb = currentProb;
-                    }
-                }
-                String[] topThree = {firstHighestWord, secondHighestWord, thirdHighestWord};
-
-                // Store the 3 highest candidates in an arrray to pick one at random
-                //String[] topThree = new String[]{nextPossibleWords.get(0), nextPossibleWords.get(1), nextPossibleWords.get(2)};
-                nextWord = pickFromThree(topThree);
-                // Append the new word to the generated sentence
-                generatedSentence = generatedSentence + nextWord + " ";
-                System.out.println(generatedSentence);
-                // If the newly appended word is the eos token break out of the loop
-                // dbmanager method that returns a boolean, if that word ever ends a sentence just end the sentence
-                if (DatabaseManager.wordEndsSentence(nextWord)) {//nextWord.equals("</s>")) {
-                    break;
-                }
-                // Update the current word to be the newly appended word
-                currentWord = nextWord;
-
             }
+            //possible words that can come after this one, and how likely is each
+            HashMap<String, Double> nextProbs = db.getBigramProbabilities(currentWord, smoothing);
+            if (nextProbs.isEmpty()) {
+                System.out.println("No next words found — stopping generation.");
+                break;
+            }
+            String nextWord = pickFromProbabilities(nextProbs);
+
+            // Append the new word to the generated sentence
+            generatedSentence = generatedSentence + nextWord + " ";
+            System.out.println(generatedSentence);
+
+            // If the newly appended word is the eos token break out of the loop
+            if (DatabaseManager.wordEndsSentence(nextWord)) {
+                break;
+            }
+            // Update the current word to be the newly appended word
+            currentWord = nextWord;
         }
-        return generatedSentence;
+        return generatedSentence.trim();
     }
-
-
 
     /**
      * Driver method to process text
@@ -250,6 +260,3 @@ public class BigramProcessor {
         }
     }
 }
-
-    
-
