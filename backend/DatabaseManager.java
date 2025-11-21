@@ -44,7 +44,7 @@ public class DatabaseManager {
                         "jdbc:mysql://localhost:3306/SentenceBuilder",
                         "root",
                         // ""
-                        "Rb092404!" //"" Khushi's password
+                        "password!" //"" Khushi's password
                 );
                 instance = new DatabaseManager(connection);
                 // System.out.println("Database connected successfully!");
