@@ -64,4 +64,8 @@ public class Word {
     public void setPreviousWord(String previousWord) {
         this.previousWord = previousWord;
     }
+
+    public void insertInDB() {
+
+    }
 }

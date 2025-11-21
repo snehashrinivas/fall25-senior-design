@@ -205,9 +205,11 @@ public class UpdatedPreProcessing {
                     // Case 1: Only punctuation (e.g., ".")
                     if (cleanedWord.length() == 1) {
                         String punctuation = cleanedWord;
-
+                        //String wordText, boolean isStartWord, boolean isEndWord, int frequency, String previousWord
+                        Word punct = new Word(punctuation, false, true, 1, previousWord);
                         // Insert punctuation as end-of-sentence marker
-                        dbManager.insertWord(punctuation, 1, false, true); // we need this function
+                        //dbManager.insertWord(punctuation, 1, false, true); // we need this function
+                        dbManager.insertWord(punct);
                         //currentSentence.add(Character.toString(lastChar));
                         count++;
 

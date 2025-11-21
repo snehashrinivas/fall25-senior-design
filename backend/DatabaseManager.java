@@ -436,6 +436,39 @@ public class DatabaseManager {
         }
     }
 
+
+    /**
+     * Inserts a single word into the Words table with its frequency and positional data.
+     * Uses ON DUPLICATE KEY UPDATE to increment frequencies if the word already exists.
+     * This method updates the word_frequency, starting_word_occurences, and ending_word_occurences
+     * based on the position of the word within a sentence.
+     *
+     * @param word      String - the word to be inserted into the database
+     * @param frequency int - the word frequency count to add
+     * @param isStart   boolean - true if the word starts a sentence, false otherwise
+     * @param isEnd     boolean - true if the word ends a sentence, false otherwise
+     * @throws SQLException Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
+     */
+    public void insertWord(Word punctu) throws SQLException {
+        // open db connection and then close it --> use catch block to capture sql error
+        String insertWordSQL = """
+                    INSERT INTO Words (word, word_frequency, starting_word_occurences, ending_word_occurences)
+                    VALUES (?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        word_frequency = word_frequency + VALUES(word_frequency),
+                        starting_word_occurences = starting_word_occurences + VALUES(starting_word_occurences),
+                        ending_word_occurences = ending_word_occurences + VALUES(ending_word_occurences);
+                """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(insertWordSQL)) {
+            stmt.setString(1, word);
+            stmt.setInt(2, frequency);
+            stmt.setInt(3, isStart ? 1 : 0);
+            stmt.setInt(4, isEnd ? 1 : 0);
+            stmt.executeUpdate();
+        }
+    }
+
     /**
      * Inserts a bigram relationship into the Relationships table.
      * Retrieves the word IDs for both the current word and next word using the getWordId() helper function,
