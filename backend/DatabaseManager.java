@@ -493,6 +493,7 @@ public class DatabaseManager {
      * @throws SQLException Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
      */
     public void insertWord(String word, int frequency, boolean isStart, boolean isEnd) throws SQLException {
+        // open db connection and then close it --> use catch block to capture sql error
         String insertWordSQL = """
                     INSERT INTO Words (word, word_frequency, starting_word_occurences, ending_word_occurences)
                     VALUES (?, ?, ?, ?)
