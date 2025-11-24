@@ -443,13 +443,11 @@ public class DatabaseManager {
      * This method updates the word_frequency, starting_word_occurences, and ending_word_occurences
      * based on the position of the word within a sentence.
      *
-     * @param word      String - the word to be inserted into the database
-     * @param frequency int - the word frequency count to add
-     * @param isStart   boolean - true if the word starts a sentence, false otherwise
-     * @param isEnd     boolean - true if the word ends a sentence, false otherwise
+     *
+     * @param wordPart
      * @throws SQLException Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
      */
-    public void insertWord(Word punctu) throws SQLException {
+    public void insertWord(Word wordPart) throws SQLException {
         // open db connection and then close it --> use catch block to capture sql error
         String insertWordSQL = """
                     INSERT INTO Words (word, word_frequency, starting_word_occurences, ending_word_occurences)
@@ -461,10 +459,10 @@ public class DatabaseManager {
                 """;
 
         try (PreparedStatement stmt = conn.prepareStatement(insertWordSQL)) {
-            stmt.setString(1, word);
-            stmt.setInt(2, frequency);
-            stmt.setInt(3, isStart ? 1 : 0);
-            stmt.setInt(4, isEnd ? 1 : 0);
+            stmt.setString(1, wordPart.getWordText());
+            stmt.setInt(2, wordPart.getFrequency());
+            stmt.setInt(3, wordPart.isStartWord() ? 1 : 0);
+            stmt.setInt(4, wordPart.isEndWord() ? 1 : 0);
             stmt.executeUpdate();
         }
     }
@@ -501,6 +499,32 @@ public class DatabaseManager {
             // Insert the bigram relationship with the word IDs
             insertRelStmt.setInt(1, currentId);
             insertRelStmt.setInt(2, nextId);
+            insertRelStmt.executeUpdate();
+        }
+    }
+
+    public void insertBigram(Relationship bigram) throws SQLException {
+        String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
+        String insertRelationshipSQL = """
+                    INSERT INTO Relationships (current_word_id, next_word_id, combination_count)
+                    VALUES (?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        combination_count = combination_count + VALUES(combination_count);
+                """;
+
+        try (
+                PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL);
+                PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL);
+                PreparedStatement insertRelStmt = conn.prepareStatement(insertRelationshipSQL)
+        ) {
+            // Get word IDs for both current and next word using helper function
+            int currentId = getWordId(bigram.getCurrentWord(), getPrefixIDStmt);
+            int nextId = getWordId(bigram.getNextWord(), getSuffixIDStmt);
+
+            // Insert the bigram relationship with the word IDs
+            insertRelStmt.setInt(1, currentId);
+            insertRelStmt.setInt(2, nextId);
+            insertRelStmt.setInt(3, bigram.getCombinationCount());
             insertRelStmt.executeUpdate();
         }
     }

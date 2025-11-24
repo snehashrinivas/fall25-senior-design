@@ -7,22 +7,14 @@ public class Word {
     private boolean isStartWord;
     private boolean isEndWord;
     private int frequency;
-    private String previousWord;
 
     // Constructor for creating a Word object, has all the attributes + previous word
     // should nto be bools, should be counts
-    // prev word should be handled in relationships
-    public Word(String wordText, boolean isStartWord, boolean isEndWord, int frequency, String previousWord) {
+    public Word(String wordText, boolean isStartWord, boolean isEndWord, int frequency) {
         this.wordText = wordText;
         this.isStartWord = isStartWord;
         this.isEndWord = isEndWord;
         this.frequency = frequency;
-        this.previousWord = previousWord;
-    }
-
-    //
-    public Word(String wordText, boolean isStartWord, boolean isEndWord, int frequency) {
-        this(wordText, isStartWord, isEndWord, frequency, null);
     }
 
     // Getters
@@ -42,10 +34,6 @@ public class Word {
         return frequency;
     }
 
-    public String getPreviousWord() {
-        return previousWord;
-    }
-
     // Setters
     public void setWordText(String wordText) {
         this.wordText = wordText;
@@ -61,13 +49,5 @@ public class Word {
 
     public void setFrequency(int frequency) {
         this.frequency = frequency;
-    }
-
-    public void setPreviousWord(String previousWord) {
-        this.previousWord = previousWord;
-    }
-
-    public void insertInDB() {
-
     }
 }
