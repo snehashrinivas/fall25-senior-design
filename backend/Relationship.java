@@ -1,43 +1,86 @@
 package backend;
+/**
+ * This class represents a relationship between two consecutive words in a sentence.
+ * It tracks the frequency of a specific word following another word, which is vital to
+ * our autocomplete and sentence generation algorithms.
+ */
 public class Relationship {
-    private String currentWord;
-    private String nextWord;
+    private int currentWordID;
+    private int nextWordID;
     private int combinationCount;
 
-    // add comments
-    // keep ids, not strings, for relationships
-    public Relationship(String currentWord, String nextWord, int combinationCount) {
-        this.currentWord = currentWord;
-        this.nextWord = nextWord;
+    /**
+     * Constructor for creating a Relationship between two words.
+     *
+     * @param currentWordID ID of the current word
+     * @param nextWordID ID of the subsequent word after the current word
+     * @param combinationCount count of how many times this pair of words occurs
+     */
+    public Relationship(int currentWordID, int nextWordID, int combinationCount) {
+        this.currentWordID = currentWordID;
+        this.nextWordID = nextWordID;
         this.combinationCount = combinationCount;
     }
 
     // Getters
-    public String getCurrentWord() {
-        return currentWord;
+
+    /**
+     * Gets the ID of the current word in this relationship.
+     *
+     * @return The current word's ID
+     */
+    public int getCurrentWordID() { return currentWordID; }
+
+    /**
+     * Gets the ID of the next word in this relationship.
+     *
+     * @return The next word's ID
+     */
+    public int getNextWordID() {
+        return nextWordID;
     }
 
-    public String getNextWord() {
-        return nextWord;
-    }
-
+    /**
+     * Gets the count of how many times this word combination appears.
+     *
+     * @return The combination count
+     */
     public int getCombinationCount() {
         return combinationCount;
     }
 
     // Setters
-    public void setCurrentWord(String currentWord) {
-        this.currentWord = currentWord;
+    /**
+     * Sets the ID of the current word.
+     *
+     * @param currentWordId The new current word ID
+     */
+    public void setCurrentWordID(int currentWordId) {
+        this.currentWordID = currentWordId;
     }
 
-    public void setNextWord(String nextWord) {
-        this.nextWord = nextWord;
+    /**
+     * Sets the ID of the next word.
+     *
+     * @param nextWordID The new next word ID
+     */
+    public void setNextWordID(int nextWordID) {
+        this.nextWordID = nextWordID;
     }
 
+    /**
+     * Sets the combination count for this word pair.
+     *
+     * @param combinationCount The new combination count
+     */
     public void setCombinationCount(int combinationCount) {
         this.combinationCount = combinationCount;
     }
 
+    /**
+     * Increments the combination count by 1.
+     * Call this method each time this word pair is encountered in the text.
+     */
     public void incrementCombinationCount() {
         this.combinationCount++;
     }

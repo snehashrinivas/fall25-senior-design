@@ -494,8 +494,8 @@ public class DatabaseManager {
         try (PreparedStatement stmt = conn.prepareStatement(insertWordSQL)) {
             stmt.setString(1, wordPart.getWordText());
             stmt.setInt(2, wordPart.getFrequency());
-            stmt.setInt(3, wordPart.isStartWord() ? 1 : 0);
-            stmt.setInt(4, wordPart.isEndWord() ? 1 : 0);
+            stmt.setInt(3, wordPart.getStartWordCount());
+            stmt.setInt(4, wordPart.getEndWordCount());
             stmt.executeUpdate();
         }
     }
@@ -551,8 +551,8 @@ public class DatabaseManager {
                 PreparedStatement insertRelStmt = conn.prepareStatement(insertRelationshipSQL)
         ) {
             // Get word IDs for both current and next word using helper function
-            int currentId = getWordId(bigram.getCurrentWord(), getPrefixIDStmt);
-            int nextId = getWordId(bigram.getNextWord(), getSuffixIDStmt);
+            int currentId = bigram.getCurrentWordID();
+            int nextId = bigram.getNextWordID();
 
             // Insert the bigram relationship with the word IDs
             insertRelStmt.setInt(1, currentId);
