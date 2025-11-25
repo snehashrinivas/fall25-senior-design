@@ -404,6 +404,39 @@ public class DatabaseManager {
         }
     } // added
 
+    public int insertFileMetadata(Document document) throws SQLException {
+        // define query to insert file metadata into Files db
+        // use CURRENT_TIMESTAMP to record when the file was inserted
+        String insertFileSQL = """
+                    INSERT INTO Files (filename, file_word_count, import_date)
+                    VALUES (?, ?, CURRENT_TIMESTAMP);
+                """;
+
+        // send the SQL command to the database and generate file_id
+        try (PreparedStatement stmt = conn.prepareStatement(insertFileSQL, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, document.getFileName());
+            stmt.setInt(2, document.getWordCount());
+            // use INSERT command to store data in db
+            stmt.executeUpdate();
+
+            // Retrieve the auto-generated file_id
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                // check if insertion was successful
+                if (rs.next()) {
+                    // print a confirmation message if metadata was inserted
+                    int fileId = rs.getInt(1);
+                    System.out.println("File metadata inserted successfully. File ID: " + fileId);
+
+                    // return file_id to caller method
+                    return fileId;
+                } else {
+                    // throw an error if file metadata was not stored correctly
+                    throw new SQLException("Failed to retrieve generated file_id");
+                }
+            }
+        }
+    } // added
+
     /**
      * Inserts a single word into the Words table with its frequency and positional data.
      * Uses ON DUPLICATE KEY UPDATE to increment frequencies if the word already exists.

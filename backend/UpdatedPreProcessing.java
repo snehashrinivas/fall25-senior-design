@@ -327,8 +327,13 @@ public class UpdatedPreProcessing {
                 try {
                     fileWordCount = preprocess(currentFile, asciiFile);
                     System.out.println("[DEBUG] preprocess returned: " + fileWordCount);
+
+                    // Create a Document object and insert it
+                    Document doc = new Document(fileName, fileWordCount);
+                    dbManager.insertFileMetadata(doc);
+
                     // Insert file metadata into database
-                    dbManager.insertFileMetadata(fileName, fileWordCount); // added
+                   // dbManager.insertFileMetadata(fileName, fileWordCount); // added
 
                 } catch (Exception e) {
                     System.err.println("[ERROR in preprocess]: " + e.getMessage());
