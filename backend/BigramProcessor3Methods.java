@@ -1,4 +1,4 @@
-//package backend;
+package backend;
 /*
  * This is a processor class for handling bigram-based language processing operations, calculating probalities to aid in word generation.
  *
