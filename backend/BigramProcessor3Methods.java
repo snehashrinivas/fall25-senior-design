@@ -16,10 +16,15 @@ import java.sql.*;
 public class BigramProcessor3Methods {
     private static DatabaseManager db = null;
     private static Connection conn = null;
+    // Add HashMaps as class fields
+    private static HashMap<String, Word> wordHashMap = null;
+    private static HashMap<String, Integer> wordsHashMap = null;
 
     public BigramProcessor3Methods(DatabaseManager dbManager) throws SQLException {
         BigramProcessor3Methods.conn = dbManager.getConnection(); // assign to static member
         BigramProcessor3Methods.db = dbManager;
+        wordHashMap = CreateWordHashMap();
+        wordsHashMap = DatabaseManager.getAllBigramRows();
     }
 
 
@@ -86,9 +91,9 @@ public class BigramProcessor3Methods {
             return 0.0;
         }
         // Word frequency of the prefix word in the Words table
-        int prefixUnigramCount = db.getWordFreq(prefix);
+        int prefixUnigramCount = db.getWordFreq(prefix, wordHashMap);
         // Frequency of the bigram in the Relationships table
-        int bigramCount = db.getWordsFreq(prefix, suffix);
+        int bigramCount = db.getWordsFreq(prefix, suffix, wordsHashMap);
         // If smoothing is true apply laplace smoothing
         if (smoothing) {
             bigramCount += 1;
@@ -198,7 +203,7 @@ public class BigramProcessor3Methods {
         String[] tokens = prefixSentence.split(" ");
         String prefixWord = tokens[tokens.length - 1].toLowerCase();
         // Ask the DB once for all next-word probabilities for this prefix
-        HashMap<String, Double> nextProbs = db.getBigramProbabilities(prefixWord, smoothing);
+        HashMap<String, Double> nextProbs = db.getBigramProbabilities(prefixWord, smoothing, wordHashMap, wordsHashMap);
         if (nextProbs.isEmpty()) {
             return new ArrayList<>();
         }
@@ -240,7 +245,7 @@ public class BigramProcessor3Methods {
                 break;
             }
             //possible words that can come after this one, and how likely is each
-            HashMap<String, Double> nextProbs = db.getBigramProbabilities(currentWord, smoothing);
+            HashMap<String, Double> nextProbs = db.getBigramProbabilities(currentWord, smoothing, wordHashMap, wordsHashMap);
             if (nextProbs.isEmpty()) {
                 System.out.println("No next words found — stopping generation.");
                 break;

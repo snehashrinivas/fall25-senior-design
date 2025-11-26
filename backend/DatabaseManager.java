@@ -25,7 +25,7 @@ public class DatabaseManager {
     private PreparedStatement insertWordStmt;
     private PreparedStatement getWordIdStmt;
     private PreparedStatement insertRelStmt;
-    private PreparedStatement insertFileStmt; // added
+    private PreparedStatement insertFileStmt;
 
     public DatabaseManager(Connection conn) {
         this.conn = conn;
@@ -437,9 +437,10 @@ public class DatabaseManager {
      *
      * @param unigram word to be queried for its frequency in the database
      * @return an int representing the number of times the given word appears in the documents
-     * Written by Andersen Breyel
+     * Written by Andersen Breyel and Khushi Dubey
      */
-    public static int getWordFreq(String unigram) {
+    public static int getWordFreq(String unigram, HashMap<String, Word> wordHashMap) {
+        /*
         // Prepared SQL Query String
         String getWordFreqSQL = "SELECT word_frequency FROM Words WHERE word = ?";
         // Try block to catch SQL exceptions
@@ -457,7 +458,15 @@ public class DatabaseManager {
         }
         // Intellij giving redline without this return statement but should be unreachable
         return 0;
-    }
+
+         */
+        // Check if word exists in HashMap
+        if (wordHashMap.containsKey(unigram)) {
+            return wordHashMap.get(unigram).getFrequency();
+        }
+        // Return 0 if word not found
+        return 0;
+    } // added
 
     /**
      * Helper method that returns the given bigram's frequency
@@ -465,9 +474,11 @@ public class DatabaseManager {
      * @param prefix prefix of the bigram to be queried for its frequency in the database
      * @param suffix suffix of the bigram to be queried for its frequency in the database
      * @return an int representing the number of times the given bigram appears in the documents
-     * Written by Andersen Breyel
+     * Written by Andersen Breyel and Khushi Dubey
      */
-    public int getWordsFreq(String prefix, String suffix) {
+    public int getWordsFreq(String prefix, String suffix, HashMap<String, Integer> wordsHashMap ) {
+        /*
+
         // SQL statement to select word_id for a given word
         String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
         // SQL statement to get the frequency of a bigram given the two word's IDs
@@ -498,7 +509,20 @@ public class DatabaseManager {
 
         }
         return 0;
-    }
+         */
+        // Create the bigram key
+        String bigramKey = prefix + " " + suffix;
+
+        // Check if bigram exists in HashMap
+        if (wordsHashMap.containsKey(bigramKey)) {
+            return wordsHashMap.get(bigramKey);
+        }
+
+        // Return 0 if bigram not found
+        return 0;
+
+
+    } // added
 
     /**
      * Helper function that returns all the words that have followed the given prefix
@@ -587,7 +611,7 @@ public class DatabaseManager {
                 }
             }
         }
-    } // added
+    }
 
     public int insertFileMetadata(Document document) throws SQLException {
         // define query to insert file metadata into Files db
@@ -620,7 +644,7 @@ public class DatabaseManager {
                 }
             }
         }
-    } // added
+    }
 
     /**
      * Inserts a single word into the Words table with its frequency and positional data.
@@ -752,7 +776,9 @@ public class DatabaseManager {
      * given a prefix word, optionally using Laplace smoothing.
      * Written by Rida Basit
      */
-    public HashMap<String, Double> getBigramProbabilities(String prefixWord, boolean smoothing) {
+    public HashMap<String, Double> getBigramProbabilities(String prefixWord, boolean smoothing, HashMap<String, Word> wordHashMap,
+                                                          HashMap<String, Integer> wordsHashMap) {
+        /*
         // create an empty list to store each next word and its probability
         HashMap<String, Double> probs = new HashMap<>();
         // get all the words that can come after prefixWord from the database
@@ -778,4 +804,46 @@ public class DatabaseManager {
         }
         return probs;
     }
+         */
+
+        // create an empty list to store each next word and its probability
+        HashMap<String, Double> probs = new HashMap<>();
+
+        // Check if prefix word exists in HashMap
+        if (!wordHashMap.containsKey(prefixWord)) {
+            return probs; // Return empty map if word not found
+        }
+
+        // Get all bigrams that start with prefixWord from HashMap
+        ArrayList<String> nextWords = new ArrayList<>();
+        for (String bigramKey : wordsHashMap.keySet()) {
+            String[] parts = bigramKey.split(" ");
+            if (parts.length == 2 && parts[0].equals(prefixWord)) {
+                nextWords.add(parts[1]);
+            }
+        }
+
+        // count how many unique words are in the whole HashMap
+        int vocabSize = wordHashMap.size();
+        // get how many times the prefix word appears in total from HashMap
+        int prefixUnigramCount = wordHashMap.get(prefixWord).getFrequency();
+
+        for (String next : nextWords) {
+            // how many times the two words appear together in that order from HashMap
+            String bigramKey = prefixWord + " " + next;
+            int bigramCount = wordsHashMap.getOrDefault(bigramKey, 0);
+
+            double prob; //store
+            // check if smoothing should be applied
+            if (smoothing) {
+                prob = (double) (bigramCount + 1) / (prefixUnigramCount + vocabSize);
+            } else {
+                //no smoothing, divide the bigram count by the prefix word count
+                prob = prefixUnigramCount > 0 ? (double) bigramCount / prefixUnigramCount : 0.0;
+            }
+            // store the next word and its calculated probability
+            probs.put(next, prob);
+        }
+        return probs;
+    } // added
 }
