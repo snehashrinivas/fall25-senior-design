@@ -22,6 +22,7 @@ public class BigramProcessor3Methods {
         BigramProcessor3Methods.db = dbManager;
     }
 
+
     /**
      * Sorts a HashMap of words and their probabilities by probability in descending order
      * @param unsortedMap HashMap containing words as keys and their probabilities as values
@@ -42,6 +43,22 @@ public class BigramProcessor3Methods {
         }
 
         return sortedList;
+    }
+
+    /**
+     * function to loop through arraylist containing the word attributes and then creates a hash map
+     * @return
+     */
+    private static HashMap<String, Word> CreateWordHashMap() {
+        HashMap<String, Word> WordHashMap = new HashMap<>();
+        ArrayList<String> WordList = DatabaseManager.getAllRowsWordTextCol();
+
+        for(int i = 0; i < WordList.size(); i++) {
+            Word wordObject = new Word(WordList.get(i));
+            WordHashMap.put(WordList.get(i), wordObject);
+        }
+
+        return WordHashMap;
     }
 
     /**

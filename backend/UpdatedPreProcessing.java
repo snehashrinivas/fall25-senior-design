@@ -207,13 +207,15 @@ public class UpdatedPreProcessing {
                         String punctuation = cleanedWord;
 
                         // Create Word object for punctuation
-                        Word punctuationWord = new Word(punctuation, false, true, 1);
+                        Word punctuationWord = new Word(punctuation, 0, 1, 1);
                         dbManager.insertWord(punctuationWord);
                         count++;
 
                         // If there was a previous word, create Relationship object and insert bigrams
                         if (previousWord != null) {
-                            Relationship rel = new Relationship(previousWord, punctuation, 1);
+                            int previousWordID = dbManager.getWordId(previousWord);
+                            int punctuationID = dbManager.getWordId(punctuation);
+                            Relationship rel = new Relationship(previousWordID, punctuationID, 1);
                             dbManager.insertBigram(rel);
                         }
 
@@ -224,28 +226,34 @@ public class UpdatedPreProcessing {
                         String wordPart = cleanedWord.substring(0, cleanedWord.length() - 1);
                         String punctuation = Character.toString(lastChar);
 
+                        int firstWordInt = isItFirstWord ? 1 : 0;
+
                         // Send word part and insert bigram from previous word
                         // Create Word object for the word part
-                        Word wordPartObj = new Word(wordPart, isItFirstWord, false, 1);
+                        Word wordPartObj = new Word(wordPart, firstWordInt, 0, 1);
                         //dbManager.insertWord(wordPart, 1, isItFirstWord, false);
                         dbManager.insertWord(wordPartObj);
                         count++;
 
                         if (previousWord != null) {
-                            Relationship rel1 = new Relationship(previousWord, wordPart, 1);
+                            int previousWordID = dbManager.getWordId(previousWord);
+                            int wordPartID = dbManager.getWordId(wordPart);
+                            Relationship rel1 = new Relationship(previousWordID, wordPartID, 1);
                             dbManager.insertBigram(rel1);
                         }
                         //previousWord = wordPart;
 
                         // Send punctuation as end-of-sentence marker
                         // Create Word object for punctuation
-                        Word punctuationObj = new Word(punctuation, false, true, 1);
+                        Word punctuationObj = new Word(punctuation, 0, 1, 1);
                        // dbManager.insertWord(punctuation, 1, false, true);
                         dbManager.insertWord(punctuationObj);
                         count++;
 
                         // Insert bigram from word to punctuation
-                        Relationship rel2 = new Relationship(wordPart, punctuation, 1);
+                        int wordPartID = dbManager.getWordId(wordPart);
+                        int punctuationID = dbManager.getWordId(punctuation);
+                        Relationship rel2 = new Relationship(wordPartID, punctuationID, 1);
                         //dbManager.insertBigram(wordPart, punctuation);
                         dbManager.insertBigram(rel2);
 
@@ -254,15 +262,18 @@ public class UpdatedPreProcessing {
                         isItFirstWord = true;
                     }
                 } else {
+                    int firstWordInt = isItFirstWord ? 1 : 0;
                     // Regular word without punctuation
-                    Word wordObj = new Word(cleanedWord, isItFirstWord, false, 1);
-                   // dbManager.insertWord(cleanedWord, 1, isItFirstWord, false);
+                    Word wordObj = new Word(cleanedWord, firstWordInt, 0, 1);
+                    // dbManager.insertWord(cleanedWord, 1, isItFirstWord, false);
                     dbManager.insertWord(wordObj);
                     count++;
 
                     // If there was a previous word, insert the bigram relationship
                     if (previousWord != null) {
-                        Relationship rel = new Relationship(previousWord, cleanedWord,1);
+                        int previousWordID = dbManager.getWordId(previousWord);
+                        int cleanedWordID = dbManager.getWordId(cleanedWord);
+                        Relationship rel = new Relationship(previousWordID, cleanedWordID,1);
                         dbManager.insertBigram(rel);
                     }
 
