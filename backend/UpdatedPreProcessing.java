@@ -18,12 +18,12 @@ import java.util.Scanner;
 public class UpdatedPreProcessing {
 
     // JDBC connection to database
-    private static Connection conn = null;
+    //private static Connection conn = null;
     private static DatabaseManager dbManager = null;
 
 
     public UpdatedPreProcessing(DatabaseManager dbManager) throws SQLException {//Connection conn, backend.backend.DatabaseManager dbManager) {
-        UpdatedPreProcessing.conn = dbManager.getConnection(); // assign to static member
+        //UpdatedPreProcessing.conn = dbManager.getConnection(); // assign to static member
         UpdatedPreProcessing.dbManager = dbManager;
     }
 
