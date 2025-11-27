@@ -23,59 +23,26 @@ public class DatabaseManager {
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "your_new_password";
 
-   // private static Connection conn;
-   // private static DatabaseManager instance;
-
     // Prepared statements for reuse
-    private PreparedStatement insertWordStmt;
-    private PreparedStatement getWordIdStmt;
-    private PreparedStatement insertRelStmt;
-    private PreparedStatement insertFileStmt;
+   // private PreparedStatement insertWordStmt;
+    //private PreparedStatement getWordIdStmt;
+    //private PreparedStatement insertRelStmt;
+    //private PreparedStatement insertFileStmt;
 
     /**
-     * Default constructor for DatabaseManager
+     * Default constructor
      * No initialization needed since connections are created per-method
      */
     public DatabaseManager() {
         // Constructor for instantiation if needed
     }
 
-    /*public DatabaseManager(Connection conn) {
-        this.conn = conn;
-    }*/
-
-    /**
-     * @return
-     * @throws SQLException
-     */
-    /*public static DatabaseManager getInstance() throws SQLException {
-        if (instance == null || !instance.isConnected()) {
-            try {
-                Class.forName("com.mysql.cj.jdbc.Driver");
-                Connection connection = DriverManager.getConnection(
-                        // "jdbc:mysql://localhost:3306/sentencebuilderdb", //khushi's url
-                        "jdbc:mysql://localhost:3306/SentenceBuilder",
-                        "root",
-                        // ""
-                        "your_new_password" //"" Khushi's password
-                );
-                instance = new DatabaseManager(connection);
-                // System.out.println("Database connected successfully!");
-            } catch (ClassNotFoundException e) {
-                throw new SQLException("MySQL JDBC Driver not found: " + e.getMessage());
-            }
-        }
-        return instance;
-    }*/
-
-    /*public Connection getConnection() {
-        return conn;
-    }*/
-
     /**
      * Helper method to create a new database connection
      * @return a new Connection object
      * @throws SQLException if connection fails
+     *
+     * Written by Ezzah
      */
     public static Connection getConnection() throws SQLException {
         try {
@@ -85,41 +52,6 @@ public class DatabaseManager {
             throw new SQLException("MySQL JDBC Driver not found: " + e.getMessage());
         }
     }
-
-    // function to check if db is connected
-
-    /**
-     * Checks if database connection is active
-     *
-     * @return true if connected, false otherwise
-     */
-   /* public boolean isConnected() {
-        try {
-            return conn != null && !conn.isClosed();
-        } catch (SQLException e) {
-            return false;
-        }
-    }*/
-
-    // function to stop connection
-
-    /**
-     * Closes all prepared statements and the database connection
-     */
-   /* public void disconnect() {
-        try {
-            if (insertWordStmt != null) insertWordStmt.close();
-            if (getWordIdStmt != null) getWordIdStmt.close();
-            if (insertRelStmt != null) insertRelStmt.close();
-            if (insertFileStmt != null) insertFileStmt.close(); // added
-            if (conn != null && !conn.isClosed()) {
-                conn.close();
-                System.out.println("Database connection closed.");
-            }
-        } catch (SQLException ex) {
-            System.err.println("Error closing database connection: " + ex.getMessage());
-        }
-    }*/
 
     /**
      * Checks if a word ends a sentence
@@ -152,9 +84,7 @@ public class DatabaseManager {
         return false;
     }
 
-
     // need to put get id and countWords in here
-
     /**
      * A helper function to retrieve the unique database ID (word_id) of a given word
      * If the word doesn’t exist, function throws a SQLException to indicate a database inconsistency.
@@ -250,7 +180,6 @@ public class DatabaseManager {
 
         try (   Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement("SELECT word FROM Words;")) {
-
             // the word id retrieval statement, set value = to word
            // stmt.setString(1, word);
             // execute query and return ResultSet (object that holds sql results)
@@ -314,8 +243,6 @@ public class DatabaseManager {
         return BigramHashMap;
     }
 
-
-
     /**
      * Retrieves a word given its ID
      * @param ID the word_id to look up
@@ -370,8 +297,6 @@ public class DatabaseManager {
         }
 
     }*/
-
-
        /* // the word id retrieval statement, set value = to word
         stmt.setInt(1, ID);
         // execute query and return ResultSet (object that holds sql results)
@@ -660,7 +585,7 @@ public class DatabaseManager {
      * @return the generated file_id
      * @throws SQLException if database access fails
      *
-     * Written by Ezzah Qureshi
+     * Written by Ezzah and Khushi
      */
     public int insertFileMetadata(Document document) throws SQLException {
         // define query to insert file metadata into Files db
@@ -728,7 +653,6 @@ public class DatabaseManager {
             stmt.executeUpdate();
         }
     }
-
 
     /**
      * Inserts a single word into the Words table with its frequency and positional data.

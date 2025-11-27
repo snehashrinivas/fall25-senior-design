@@ -16,14 +16,15 @@ import java.io.*;
 import java.util.Scanner;
 
 public class UpdatedPreProcessing {
-
-    // JDBC connection to database
-    //private static Connection conn = null;
     private static DatabaseManager dbManager = null;
 
-
-    public UpdatedPreProcessing(DatabaseManager dbManager) throws SQLException {//Connection conn, backend.backend.DatabaseManager dbManager) {
-        //UpdatedPreProcessing.conn = dbManager.getConnection(); // assign to static member
+    /**
+     * Constructor
+     *
+     * @param dbManager
+     * @throws SQLException
+     */
+    public UpdatedPreProcessing(DatabaseManager dbManager) throws SQLException {
         UpdatedPreProcessing.dbManager = dbManager;
     }
 
@@ -231,7 +232,6 @@ public class UpdatedPreProcessing {
                         // Send word part and insert bigram from previous word
                         // Create Word object for the word part
                         Word wordPartObj = new Word(wordPart, firstWordInt, 0, 1);
-                        //dbManager.insertWord(wordPart, 1, isItFirstWord, false);
                         dbManager.insertWord(wordPartObj);
                         count++;
 
@@ -246,7 +246,6 @@ public class UpdatedPreProcessing {
                         // Send punctuation as end-of-sentence marker
                         // Create Word object for punctuation
                         Word punctuationObj = new Word(punctuation, 0, 1, 1);
-                       // dbManager.insertWord(punctuation, 1, false, true);
                         dbManager.insertWord(punctuationObj);
                         count++;
 
@@ -254,7 +253,6 @@ public class UpdatedPreProcessing {
                         int wordPartID = dbManager.getWordId(wordPart);
                         int punctuationID = dbManager.getWordId(punctuation);
                         Relationship rel2 = new Relationship(wordPartID, punctuationID, 1);
-                        //dbManager.insertBigram(wordPart, punctuation);
                         dbManager.insertBigram(rel2);
 
                        // previousWord = punctuation;
@@ -265,7 +263,6 @@ public class UpdatedPreProcessing {
                     int firstWordInt = isItFirstWord ? 1 : 0;
                     // Regular word without punctuation
                     Word wordObj = new Word(cleanedWord, firstWordInt, 0, 1);
-                    // dbManager.insertWord(cleanedWord, 1, isItFirstWord, false);
                     dbManager.insertWord(wordObj);
                     count++;
 
