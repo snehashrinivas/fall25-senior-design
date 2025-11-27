@@ -28,7 +28,7 @@ public class Word {
         this.frequency = frequency;
     }
 
-    public Word(String wordText) {
+    /*public Word(String wordText) {
         // query db for each field
         this.wordText = wordText;
 
@@ -38,7 +38,7 @@ public class Word {
         this.startWordCount = DatabaseManager.getWordStart(wordText);
         this.endWordCount = DatabaseManager.getWordEnd(wordText);
 
-    }
+    }*/
 
     // Getters
 

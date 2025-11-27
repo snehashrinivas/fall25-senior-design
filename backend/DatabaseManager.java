@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DatabaseManager {
-    // Database connection details
+    // Database connection details --> change credentials here
     private static final String DB_URL = "jdbc:mysql://localhost:3306/SentenceBuilder";
     // "jdbc:mysql://localhost:3306/sentencebuilderdb" khushi's url
     private static final String DB_USER = "root";
@@ -32,6 +32,8 @@ public class DatabaseManager {
      */
     public DatabaseManager() { }
 
+
+    // close connection
     /**
      * Helper method to create a new database connection
      * @return a new Connection object
@@ -85,7 +87,6 @@ public class DatabaseManager {
         return false;
     }
 
-    // need to put get id and countWords in here
     /**
      * A helper function to retrieve the unique database ID (word_id) of a given word
      * If the word doesn’t exist, function throws a SQLException to indicate a database inconsistency.
@@ -94,7 +95,8 @@ public class DatabaseManager {
      * @throws SQLException if the word is not found or database access fails
      * Written by Ezzah Qureshi
      */
-    public static int getWordId(String word) {//} throws SQLException {
+    public static int getWordId(String word) {
+        // try to get db connection
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement("SELECT word_id FROM Words WHERE word = ?;")) {
 
@@ -112,431 +114,6 @@ public class DatabaseManager {
             System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
         }
         return 0;
-    }
-
-    /**
-     * Retrieves the starting word occurrence count for a word
-     * @param word the word to check
-     * @return the starting occurrence count
-     *
-     * Written by Andersen, Khushi, and Ezzah
-     */
-    public static int getWordStart(String word) {//} throws SQLException {
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT starting_word_occurences FROM Words WHERE word = ?;")) {
-
-            // Set the word parameter in the prepared statement and execute query
-            stmt.setString(1, word);
-            try (ResultSet rs = stmt.executeQuery()) {
-                // read the result (pointer is pointing to before the int, hence why .next)
-                if (rs.next()) {
-                    // Return the starting word occurrence count
-                    return rs.getInt("starting_word_occurences");
-                }
-            }
-            System.err.println("Word not found: " + word);
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
-        }
-        return 0;
-    }
-
-    /**
-     * Retrieves the ending word occurrence count for a word
-     * @param word the word to check
-     * @return the ending occurrence count
-     *
-     * Written by Andersen, Khushi, and Ezzah
-     */
-    public static int getWordEnd(String word) {//} throws SQLException {
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT ending_word_occurences FROM Words WHERE word = ?;")) {
-
-            // Set the word parameter in the prepared statement and execute query
-            stmt.setString(1, word);
-            try (ResultSet rs = stmt.executeQuery()) {
-                // read the result (pointer is pointing to before the int, hence why .next)
-                if (rs.next()) {
-                    // Return the ending word occurrence count
-                    return rs.getInt("ending_word_occurences");
-                }
-            }
-            System.err.println("Word not found: " + word);
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
-        }
-        return 0;
-    }
-
-    /**
-     * Retrieves all words from the Words table
-     * @return ArrayList of all word strings
-     *
-     * Written by Andersen, Khushi, and Ezzah
-     */
-    public static ArrayList<String> getAllRowsWordTextCol() {//} throws SQLException {
-        // Initialize empty list to store words
-        ArrayList<String> WordList = new ArrayList<>();
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT word FROM Words;")) {
-
-            // execute query and return ResultSet (object that holds sql results)
-            try (ResultSet rs = stmt.executeQuery()) {
-
-                // Loop through all rows in the result set
-                while (rs.next()) {
-                    // Get the word from current row and add it to the list
-                    String word = rs.getString("word");
-                    WordList.add(word);
-                }
-            }
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
-        }
-        return WordList;
-    }
-
-    /**
-     * Retrieves all bigram relationships from the Relationships table
-     * @return HashMap mapping "word1 word2" to combination count
-     *
-     * Written by Andersen, Khushi, and Ezzah
-     */
-    public static HashMap<String, Integer> getAllBigramRows() {
-        // Initialize empty HashMap to store bigrams
-        HashMap<String, Integer> BigramHashMap = new HashMap<>();
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Relationships;")) {
-
-            // execute query and return ResultSet (object that holds sql results)
-            try (ResultSet rs = stmt.executeQuery()) {
-
-                // Loop through all rows in the result set
-                while (rs.next()) {
-                    // Get the word IDs and freq from result set
-                    int prevWordID = rs.getInt("current_word_id");
-                    int currentWordID = rs.getInt("next_word_id");
-                    int comboCount = rs.getInt("combination_count");
-
-                    // Convert IDs to word strings
-                    String prevWord = getWord(prevWordID);
-                    String currentWord = getWord(currentWordID);
-
-                    // Create bigram key as "word1 word2" and store it and count in hashmap
-                    String hashMapKey = prevWord + " " + currentWord;
-                    BigramHashMap.put(hashMapKey, comboCount);
-                }
-            }
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
-        }
-        return BigramHashMap;
-    }
-
-    /**
-     * Retrieves a word given its ID
-     * @param ID the word_id to look up
-     * @return the word string, or null if not found
-     *
-     * Written by Ezzah Qureshi and Andersen Breyel
-     */
-    private static String getWord(int ID) throws SQLException {
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT word FROM Words WHERE word_id = ?;")) {
-
-            // Set the word ID parameter in the prepared statement and execute query
-            stmt.setInt(1, ID);
-            try (ResultSet rs = stmt.executeQuery()) {
-                // read the result (pointer is pointing to before the int, hence why .next)
-                if (rs.next()) {
-                    // Return the word from the result
-                    return rs.getString("word");
-                }
-            }
-            System.err.println("ID not found: " + ID);
-        } catch(SQLException ex) {
-            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
-        }
-        return null;
-    }
-
-    // get rid of this method
-    /**
-     * A helper function to retrieve the word given its ID
-     *
-     * @throws SQLException if the word ID is not found or database access fails
-     *                      Written by Ezzah Qureshi and Andersen Breyel
-     */
-    public static ResultSet getWordRow(String word) {//} throws SQLException {
-        int wordID = getWordId(word);
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT word_frequency, starting_word_occurences, ending_word_occurences FROM Words WHERE word_id = ?;")) {
-            // the word id retrieval statement, set value = to word
-            stmt.setInt(1, wordID);
-            // execute query and return ResultSet (object that holds sql results)
-            try (ResultSet rs = stmt.executeQuery()) {
-                // read the result (pointer is pointing to before the int, hence why .next)
-                if (rs.next()) {
-                    return rs;
-                }
-            }
-            throw new SQLException(" Word not found: " + word);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Helper method to get the number of words stored in the database
-     *
-     * @return int of the number rows in the Words table in the dataase
-     * Written by Andersen Breyel
-     */
-    public int getVocabSize() {
-        // Try block to catch SQL exceptions
-        // Creates a statement object that will become the query
-        try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement()) {
-            // Counts the number of rows for the first column, the primary key,
-            // and stores them in an alias "NumberOfRows"
-            ResultSet rs = stmt.executeQuery("SELECT COUNT(1) as NumberOfRows FROM Words");
-            // Moves the pointer to the first row of the result set
-            if (rs.next()) {
-                // Return the result of the query
-                return rs.getInt("NumberOfRows");
-            }
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
-        }
-        // Intellij giving redline without this return statement but should be unreachable
-        return 0;
-    }
-
-    /**
-     * Helper method to check if the word is being stored in the database
-     *
-     * @param unigram given word to be checked if it's in the database
-     * @return boolean representing if the word exists in the database or not
-     * Written by Andersen Breyel
-     */
-    public boolean wordInDB(String unigram) {
-        // Prepared SQL Query String
-        String checkWordSQL = "SELECT * FROM Words WHERE word = ?";
-        // Try opening sql connections
-        try (Connection conn = getConnection();
-             PreparedStatement checkWordStmt = conn.prepareStatement(checkWordSQL)) {
-            checkWordStmt.setString(1, unigram);
-            ResultSet rs = checkWordStmt.executeQuery();
-            // rs.next() returns false if it's pointing to the end of the ResultSet, true otherwise
-            return rs.next();
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Helper method to check if given bigram is stored in the database
-     *
-     * @param prefix prefix word in bigram to be checked
-     * @param suffix suffix word in bigram to be checked
-     * @return boolean representing if given bigram is being stored in the database
-     * Written by Andersen Breyel
-     */
-    public boolean wordsInDB(String prefix, String suffix) {
-        // Prepared SQL Query String
-        String checkWordsSQL = "SELECT * FROM Relationships WHERE current_word_id = ? AND next_word_id = ?";
-
-        // Get the word IDs for both prefix and suffix
-        int prefixID = getWordId(prefix);
-        int suffixID = getWordId(suffix);
-
-        // Try opening sql connections
-        try (Connection conn = getConnection();
-             PreparedStatement checkWordStmt = conn.prepareStatement(checkWordsSQL)) {
-
-            checkWordStmt.setInt(1, prefixID);
-            checkWordStmt.setInt(2, suffixID);
-            ResultSet rs = checkWordStmt.executeQuery();
-            // rs.next() returns false if it's pointing to the end of the ResultSet, true otherwise
-            return rs.next();
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Relationship table: " + ex.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Helper method that returns the given word's frequency
-     *
-     * @param unigram word to be queried for its frequency in the database
-     * @return an int representing the number of times the given word appears in the documents
-     * Written by Andersen Breyel and Khushi Dubey
-     */
-    public static int getWordFreq(String unigram, HashMap<String, Word> wordHashMap) {
-        /*
-        // Prepared SQL Query String
-        String getWordFreqSQL = "SELECT word_frequency FROM Words WHERE word = ?";
-        // Try block to catch SQL exceptions
-        // Creates a statement object that will become the query
-        try (PreparedStatement stmt = conn.prepareStatement(getWordFreqSQL)) {
-            stmt.setString(1, unigram);
-            ResultSet rs = stmt.executeQuery();
-            // Moves the pointer to the first row of the result set
-            if (rs.next()) {
-                // Return the result of the query
-                return rs.getInt("word_frequency");
-            }
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
-        }
-        // Intellij giving redline without this return statement but should be unreachable
-        return 0;
-
-         */
-        // Check if word exists in HashMap
-        if (wordHashMap.containsKey(unigram)) {
-            return wordHashMap.get(unigram).getFrequency();
-        }
-        // Return 0 if word not found
-        return 0;
-    } // added
-
-    /**
-     * Helper method that returns the given bigram's frequency
-     *
-     * @param prefix prefix of the bigram to be queried for its frequency in the database
-     * @param suffix suffix of the bigram to be queried for its frequency in the database
-     * @return an int representing the number of times the given bigram appears in the documents
-     * Written by Andersen Breyel and Khushi Dubey
-     */
-    public int getWordsFreq(String prefix, String suffix, HashMap<String, Integer> wordsHashMap ) {
-        /*
-
-        // SQL statement to select word_id for a given word
-        String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
-        // SQL statement to get the frequency of a bigram given the two word's IDs
-        String getWordsFreqSQL = "SELECT combination_count FROM Relationships WHERE (current_word_id = ? AND next_word_id = ?)";
-        // Open SQL connections to get word IDs and catch SQL exceptions
-        try (
-                // Open a connection to get both prefix and suffix word IDs using prepared statements
-                PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL);
-                PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL);
-        ) {
-            // Pass prepared statements into getWordIDs to get the respective IDs
-            int prefixID = getWordId(prefix);//, getPrefixIDStmt);
-            int suffixID = getWordId(suffix);//, getSuffixIDStmt);
-            // Open SQL connection to get bigram freqs and catch SQL exceptions
-            try (PreparedStatement getWordsFreqStmt = conn.prepareStatement(getWordsFreqSQL)) {
-                getWordsFreqStmt.setInt(1, prefixID);
-                getWordsFreqStmt.setInt(2, suffixID);
-                ResultSet rs = getWordsFreqStmt.executeQuery();
-                if (rs.next()) {
-                    // Return the result of the query
-                    return rs.getInt("combination_count");
-                }
-            } catch (SQLException ex) {
-                System.err.println("SQL error getting bigram freqs for getWordsFreq method: " + ex.getMessage());
-            }
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting word IDs for getWordsFreq method: " + ex.getMessage());
-
-        }
-        return 0;
-         */
-        // Create the bigram key
-        String bigramKey = prefix + " " + suffix;
-
-        // Check if bigram exists in HashMap
-        if (wordsHashMap.containsKey(bigramKey)) {
-            return wordsHashMap.get(bigramKey);
-        }
-
-        // Return 0 if bigram not found
-        return 0;
-
-
-    } // added
-
-    /**
-     * Helper function that returns all the words that have followed the given prefix
-     * across the documents
-     *
-     * @param prefix given word used to query the Words table for all the possible bigram suffixes
-     * @return an array list of all words that follow the given word across the documents
-     * Written by Andersen Breyel
-     */
-    public ArrayList<String> getPossibleBigrams(String prefix) {
-        ArrayList<String> suffixList = new ArrayList<>();
-        // SQL statement to get the frequency of a bigram given the two word's IDs
-        String getSuffixIDsSQL = "SELECT next_word_id FROM Relationships WHERE current_word_id = ?";
-
-        // Get the word ID for the prefix word
-        int prefixID = getWordId(prefix);
-
-        try (Connection conn = getConnection();
-             PreparedStatement getSuffixIDsStmt = conn.prepareStatement(getSuffixIDsSQL)) {
-
-            getSuffixIDsStmt.setInt(1, prefixID);
-            ResultSet suffixIDsRS = getSuffixIDsStmt.executeQuery();
-            // Loop through the result set
-            while (suffixIDsRS.next()) {
-                // Get the next item from the result set
-                int suffixID = suffixIDsRS.getInt("next_word_id");
-                String suffix = getWord(suffixID);//, getWordStmt);
-                suffixList.add(suffix);
-            }
-        } catch (SQLException ex) {
-            System.err.println("SQL error next word IDs for getPossibleBigrams method: " + ex.getMessage());
-        }
-        return suffixList;
-    }
-
-    /**
-     * Inserts file metadata into the Files table
-     * Records the filename, word count, and import timestamp in the database
-     *
-     * @param filename  Name of the file being imported
-     * @param wordCount Total number of words processed from the file
-     * @return The generated file_id for the inserted record
-     * @throws SQLException if a database access error occurs
-     *                      Written by Khushi Dubey
-     */
-    public int insertFileMetadata(String filename, int wordCount) throws SQLException {
-        // define query to insert file metadata into Files db
-        // use CURRENT_TIMESTAMP to record when the file was inserted
-        String insertFileSQL = """
-                    INSERT INTO Files (filename, file_word_count, import_date)
-                    VALUES (?, ?, CURRENT_TIMESTAMP);
-                """;
-
-        // send the SQL command to the database and generate file_id
-        try (   Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(insertFileSQL, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, filename);
-            stmt.setInt(2, wordCount);
-            // use INSERT command to store data in db
-            stmt.executeUpdate();
-
-            // Retrieve the auto-generated file_id
-            try (ResultSet rs = stmt.getGeneratedKeys()) {
-                // check if insertion was successful
-                if (rs.next()) {
-                    // print a confirmation message if metadata was inserted
-                    int fileId = rs.getInt(1);
-                    System.out.println("File metadata inserted successfully. File ID: " + fileId);
-
-                    // return file_id to caller method
-                    return fileId;
-                } else {
-                    // throw an error if file metadata was not stored correctly
-                    throw new SQLException("Failed to retrieve generated file_id");
-                }
-            }
-        }
     }
 
     /**
@@ -587,42 +164,10 @@ public class DatabaseManager {
      * This method updates the word_frequency, starting_word_occurences, and ending_word_occurences
      * based on the position of the word within a sentence.
      *
-     * @param word      String - the word to be inserted into the database
-     * @param frequency int - the word frequency count to add
-     * @param isStart   boolean - true if the word starts a sentence, false otherwise
-     * @param isEnd     boolean - true if the word ends a sentence, false otherwise
-     * @throws SQLException Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
-     */
-    public void insertWord(String word, int frequency, boolean isStart, boolean isEnd) throws SQLException {
-        // open db connection and then close it --> use catch block to capture sql error
-        String insertWordSQL = """
-                    INSERT INTO Words (word, word_frequency, starting_word_occurences, ending_word_occurences)
-                    VALUES (?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE
-                        word_frequency = word_frequency + VALUES(word_frequency),
-                        starting_word_occurences = starting_word_occurences + VALUES(starting_word_occurences),
-                        ending_word_occurences = ending_word_occurences + VALUES(ending_word_occurences);
-                """;
-
-        try (   Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement(insertWordSQL)) {
-            stmt.setString(1, word);
-            stmt.setInt(2, frequency);
-            stmt.setInt(3, isStart ? 1 : 0);
-            stmt.setInt(4, isEnd ? 1 : 0);
-            stmt.executeUpdate();
-        }
-    }
-
-    /**
-     * Inserts a single word into the Words table with its frequency and positional data.
-     * Uses ON DUPLICATE KEY UPDATE to increment frequencies if the word already exists.
-     * This method updates the word_frequency, starting_word_occurences, and ending_word_occurences
-     * based on the position of the word within a sentence.
+     * @param wordPart This is an instance of expert class
+     * @throws SQLException
      *
-     *
-     * @param wordPart
-     * @throws SQLException Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
+     * Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
      */
     public void insertWord(Word wordPart) throws SQLException {
         // open db connection and then close it --> use catch block to capture sql error
@@ -635,8 +180,11 @@ public class DatabaseManager {
                         ending_word_occurences = ending_word_occurences + VALUES(ending_word_occurences);
                 """;
 
+        // try to get db connection
         try (   Connection conn = getConnection();
                 PreparedStatement stmt = conn.prepareStatement(insertWordSQL)) {
+
+            // pass in values into their associated parameters in the prepared statement
             stmt.setString(1, wordPart.getWordText());
             stmt.setInt(2, wordPart.getFrequency());
             stmt.setInt(3, wordPart.getStartWordCount());
@@ -652,50 +200,12 @@ public class DatabaseManager {
      * combination_count if the bigram relationship already exists in the database.
      * This method is essential for tracking which words commonly follow other words in the documents.
      *
-     * @param currentWord String - the prefix word in the bigram relationship
-     * @param nextWord    String - the suffix word in the bigram relationship
-     * @throws SQLException Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
-     */
-    public void insertBigram(String currentWord, String nextWord) throws SQLException {
-        String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
-        String insertRelationshipSQL = """
-                    INSERT INTO Relationships (current_word_id, next_word_id, combination_count)
-                    VALUES (?, ?, 1)
-                    ON DUPLICATE KEY UPDATE
-                        combination_count = combination_count + 1;
-                """;
-
-        try (
-                Connection conn = getConnection();
-     //          PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL);
-    //            PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL);
-                PreparedStatement insertRelStmt = conn.prepareStatement(insertRelationshipSQL)
-        ) {
-            // Get word IDs for both current and next word using helper function
-            int currentId = getWordId(currentWord); //getPrefixIDStmt);
-            int nextId = getWordId(nextWord);//, getSuffixIDStmt);
-
-            // Insert the bigram relationship with the word IDs
-            insertRelStmt.setInt(1, currentId);
-            insertRelStmt.setInt(2, nextId);
-            insertRelStmt.executeUpdate();
-        }
-    }
-
-    /**
-     * Inserts a bigram relationship into the Relationships table.
-     * Retrieves the word IDs for both the current word and next word using the getWordId() helper function,
-     * then inserts or updates the relationship record. Uses ON DUPLICATE KEY UPDATE to increment the
-     * combination_count if the bigram relationship already exists in the database.
-     * This method is essential for tracking which words commonly follow other words in the documents.
-     *
-     * @param bigram
+     * @param bigram instance of relationships expert class
      * @throws SQLException
      *
      * Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
      */
     public void insertBigram(Relationship bigram) throws SQLException {
-       // String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
         String insertRelationshipSQL = """
                     INSERT INTO Relationships (current_word_id, next_word_id, combination_count)
                     VALUES (?, ?, ?)
@@ -703,12 +213,8 @@ public class DatabaseManager {
                         combination_count = combination_count + VALUES(combination_count);
                 """;
 
-        try (
-                Connection conn = getConnection();
-             //   PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL);
-             //   PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL);
-                PreparedStatement insertRelStmt = conn.prepareStatement(insertRelationshipSQL)
-        ) {
+        try (Connection conn = getConnection();
+             PreparedStatement insertRelStmt = conn.prepareStatement(insertRelationshipSQL)) {
             // Get word IDs for both current and next word using helper function
             int currentId = bigram.getCurrentWordID();
             int nextId = bigram.getNextWordID();
@@ -722,119 +228,82 @@ public class DatabaseManager {
     }
 
     /**
-     * Returns a probability map of all next words and their bigram probabilities
-     * given a prefix word, optionally using Laplace smoothing.
-     * Written by Rida Basit
-     */
-    public HashMap<String, Double> getBigramProbabilities(String prefixWord, boolean smoothing, HashMap<String, Word> wordHashMap,
-                                                          HashMap<String, Integer> wordsHashMap) {
-        /*
-        // create an empty list to store each next word and its probability
-        HashMap<String, Double> probs = new HashMap<>();
-        // get all the words that can come after prefixWord from the database
-        ArrayList<String> nextWords = getPossibleBigrams(prefixWord);
-        // count how many unique words are in the whole database
-        int vocabSize = getVocabSize();
-        // get how many times the prefix word appears in total
-        int prefixUnigramCount = getWordFreq(prefixWord);
-
-        for (String next : nextWords) {
-            // how many times the two words appear together in that order
-            int bigramCount = getWordsFreq(prefixWord, next);
-            double prob; //store
-            // check if smoothing should be applied
-            if (smoothing) {
-                prob = (double) (bigramCount + 1) / (prefixUnigramCount + vocabSize);
-            } else {
-                //no smoothing, divide the bigram count by the prefix word count
-                prob = prefixUnigramCount > 0 ? (double) bigramCount / prefixUnigramCount : 0.0;
-            }
-            // store the next word and its calculated probability
-            probs.put(next, prob);
-        }
-        return probs;
-    }
-         */
-
-        // create an empty list to store each next word and its probability
-        HashMap<String, Double> probs = new HashMap<>();
-
-        // Check if prefix word exists in HashMap
-        if (!wordHashMap.containsKey(prefixWord)) {
-            return probs; // Return empty map if word not found
-        }
-
-        // Get all bigrams that start with prefixWord from HashMap
-        ArrayList<String> nextWords = new ArrayList<>();
-        for (String bigramKey : wordsHashMap.keySet()) {
-            String[] parts = bigramKey.split(" ");
-            if (parts.length == 2 && parts[0].equals(prefixWord)) {
-                nextWords.add(parts[1]);
-            }
-        }
-
-        // count how many unique words are in the whole HashMap
-        int vocabSize = wordHashMap.size();
-        // get how many times the prefix word appears in total from HashMap
-        int prefixUnigramCount = wordHashMap.get(prefixWord).getFrequency();
-
-        for (String next : nextWords) {
-            // how many times the two words appear together in that order from HashMap
-            String bigramKey = prefixWord + " " + next;
-            int bigramCount = wordsHashMap.getOrDefault(bigramKey, 0);
-
-            double prob; //store
-            // check if smoothing should be applied
-            if (smoothing) {
-                prob = (double) (bigramCount + 1) / (prefixUnigramCount + vocabSize);
-            } else {
-                //no smoothing, divide the bigram count by the prefix word count
-                prob = prefixUnigramCount > 0 ? (double) bigramCount / prefixUnigramCount : 0.0;
-            }
-            // store the next word and its calculated probability
-            probs.put(next, prob);
-        }
-        return probs;
-    } // added
-
-
-    /**
-     * FASTER: Load all words directly into HashMap with ONE database query
-     * This replaces CreateWordHashMap() and getAllRowsWordTextCol()
+     * Load all words directly into HashMap with one database query
      *
      * @return HashMap of all words with their properties
      */
     public static HashMap<String, Word> loadAllWordsOptimized() {
+        // initialize hash map and statement
         HashMap<String, Word> wordHashMap = new HashMap<>();
-
         String sql = """
                 SELECT word, word_frequency, starting_word_occurences, ending_word_occurences
                 FROM Words
                 """;
 
+        // try to get db connection
         try (Connection conn = DatabaseManager.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
+            // loop through result set
             while (rs.next()) {
+                // get the values from the result set
                 String wordText = rs.getString("word");
                 int frequency = rs.getInt("word_frequency");
                 int startCount = rs.getInt("starting_word_occurences");
                 int endCount = rs.getInt("ending_word_occurences");
 
-                // Create Word object directly with values from query
+                // Create Word object directly with values from query and store in hashmap
                 Word word = new Word(wordText, startCount, endCount, frequency);
                 wordHashMap.put(wordText, word);
             }
 
+            // system message
             System.out.println("Loaded " + wordHashMap.size() + " words into memory");
-
         } catch (SQLException ex) {
             System.err.println("SQL error loading words: " + ex.getMessage());
         }
-
         return wordHashMap;
     }
 
+    /**
+     * Load all bigrams directly into HashMap with one database query
+     *
+     * @return HashMap mapping "word1 word2" to combination count
+     */
+    public static HashMap<String, Integer> loadAllBigramsOptimized() {
+        HashMap<String, Integer> bigramHashMap = new HashMap<>();
 
+        // Join with Words table to get word text from word id
+        String sql = """
+                SELECT w1.word AS current_word, w2.word AS next_word, r.combination_count
+                FROM Relationships r
+                JOIN Words w1 ON r.current_word_id = w1.word_id
+                JOIN Words w2 ON r.next_word_id = w2.word_id
+                """;
+
+        // try to get db connection
+        try (Connection conn = DatabaseManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            // loop through result set
+            while (rs.next()) {
+                // get values from result set
+                String currentWord = rs.getString("current_word");
+                String nextWord = rs.getString("next_word");
+                int combinationCount = rs.getInt("combination_count");
+
+                // create a key for the hashmap and store key and frequency count in map
+                String bigramKey = currentWord + " " + nextWord;
+                bigramHashMap.put(bigramKey, combinationCount);
+            }
+
+            // system message
+            System.out.println("Loaded " + bigramHashMap.size() + " bigrams into memory");
+        } catch (SQLException ex) {
+            System.err.println("SQL error loading bigrams: " + ex.getMessage());
+        }
+        return bigramHashMap;
+    }
 }

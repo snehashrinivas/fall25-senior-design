@@ -65,7 +65,7 @@ public class SentenceService {
             String cleanPrefix = prefix.trim();
 
             // Generate sentence with max 10 words, using smoothing
-            String result = BigramProcessor.generateSentence(cleanPrefix, 10, true);
+            String result = BigramProcessor.generateSentenceTopOne(cleanPrefix, 10, true);
 
             // Check if generation was successful
             if (result == null || result.trim().isEmpty()) {
