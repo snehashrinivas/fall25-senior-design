@@ -178,43 +178,8 @@ public class BigramProcessor {
             } else {
                 // Get the candidates for the next possible word
                 ArrayList<String> nextPossibleWords = getNextWords(currentWord, smoothing);
-
-                // Store the 3 highest candidates in an array to pick one at random
-                String firstHighestWord = "";
-                String secondHighestWord = "";
-                String thirdHighestWord = "";
-                double firstHighestProb = -1.0;
-                double secondHighestProb = -1.0;
-                double thirdHighestProb = -1.0;
-                double currentProb = 0.0;
-                for (int j = 0; j < nextPossibleWords.size(); j++) {
-                    currentProb =  BigramProbability(currentWord, nextPossibleWords.get(j), smoothing);
-                    // If the current probability is higher than the current highest probability shift
-                    // second to third then first to second becore replacing first with the new values
-                    if (currentProb > firstHighestProb) {
-                        thirdHighestWord = secondHighestWord;
-                        thirdHighestProb = secondHighestProb;
-                        secondHighestWord = firstHighestWord;
-                        secondHighestProb = firstHighestProb;
-                        firstHighestWord = nextPossibleWords.get(j);
-                        firstHighestProb = currentProb;
-                        // If the new probability is only higher than the second highest probability shift second to third
-                        // and replace the second proability
-                    } else if(currentProb > secondHighestProb) {
-                        thirdHighestWord = secondHighestWord;
-                        thirdHighestProb =  secondHighestProb;
-                        secondHighestWord = nextPossibleWords.get(j);
-                        secondHighestProb = currentProb;
-                        // If the new probability is only higher than the third probability
-                    } else if (currentProb > thirdHighestProb) {
-                        thirdHighestWord = nextPossibleWords.get(j);
-                        thirdHighestProb = currentProb;
-                    }
-                }
-                String[] topThree = {firstHighestWord, secondHighestWord, thirdHighestWord};
-
                 // Store the 3 highest candidates in an arrray to pick one at random
-                //String[] topThree = new String[]{nextPossibleWords.get(0), nextPossibleWords.get(1), nextPossibleWords.get(2)};
+                String[] topThree = new String[]{nextPossibleWords.get(0), nextPossibleWords.get(1), nextPossibleWords.get(2)};
                 nextWord = pickFromThree(topThree);
                 // Append the new word to the generated sentence
                 generatedSentence = generatedSentence + nextWord + " ";
