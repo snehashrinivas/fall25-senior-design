@@ -20,22 +20,17 @@ import java.util.HashMap;
 public class DatabaseManager {
     // Database connection details
     private static final String DB_URL = "jdbc:mysql://localhost:3306/SentenceBuilder";
+    // "jdbc:mysql://localhost:3306/sentencebuilderdb" khushi's url
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "your_new_password";
-
-    // Prepared statements for reuse
-   // private PreparedStatement insertWordStmt;
-    //private PreparedStatement getWordIdStmt;
-    //private PreparedStatement insertRelStmt;
-    //private PreparedStatement insertFileStmt;
+    //"" Khushi's password
+    // "password" Sneha's password
 
     /**
      * Default constructor
      * No initialization needed since connections are created per-method
      */
-    public DatabaseManager() {
-        // Constructor for instantiation if needed
-    }
+    public DatabaseManager() { }
 
     /**
      * Helper method to create a new database connection
@@ -46,7 +41,9 @@ public class DatabaseManager {
      */
     public static Connection getConnection() throws SQLException {
         try {
+            // Load the MySQL JDBC driver
             Class.forName("com.mysql.cj.jdbc.Driver");
+            // Create and return a new connection to the database
             return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
         } catch (ClassNotFoundException e) {
             throw new SQLException("MySQL JDBC Driver not found: " + e.getMessage());
@@ -61,24 +58,28 @@ public class DatabaseManager {
      * Written by Andersen, Khushi, and Ezzah
      */
     public static boolean wordEndsSentence(String unigram) {
+        // SQL query to get the ending word occurrence count for the given word
         String wordEOS = """
                 SELECT ending_word_occurences AS eos FROM Words WHERE word = ? 
                 """;
 
-        try (   Connection conn = getConnection();
-                PreparedStatement wordEOSStmt = conn.prepareStatement(wordEOS)) {
+        // get connection and prepare statement
+        try (Connection conn = getConnection();
+             PreparedStatement wordEOSStmt = conn.prepareStatement(wordEOS)) {
 
+            // Set the word parameter in the prepared statement and execute query
             wordEOSStmt.setString(1, unigram);
             ResultSet rs = wordEOSStmt.executeQuery();
 
+            // If a result exists, check if the ending count is greater than 0, and return if it does
             if (rs.next()) {
                 int eosValue = rs.getInt("eos");
                 return eosValue > 0;
             } else {
+                // Print error if word not found in database
                 System.out.println("Error for finding unigram occurence" + unigram);
             }
         } catch (SQLException e) {
-            //throw new RuntimeException(e);
             System.err.println("SQL error in wordEndsSentence: " + e.getMessage());
         }
         return false;
@@ -94,15 +95,15 @@ public class DatabaseManager {
      * Written by Ezzah Qureshi
      */
     public static int getWordId(String word) {//} throws SQLException {
-        try (   Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement("SELECT word_id FROM Words WHERE word = ?;")) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT word_id FROM Words WHERE word = ?;")) {
 
-            // the word id retrieval statement, set value = to word
+            // Set the word parameter in the prepared statement and execute query
             stmt.setString(1, word);
-            // execute query and return ResultSet (object that holds sql results)
             try (ResultSet rs = stmt.executeQuery()) {
                 // read the result (pointer is pointing to before the int, hence why .next)
                 if (rs.next()) {
+                    // Return the word_id from the result
                     return rs.getInt("word_id");
                 }
             }
@@ -121,19 +122,18 @@ public class DatabaseManager {
      * Written by Andersen, Khushi, and Ezzah
      */
     public static int getWordStart(String word) {//} throws SQLException {
-        try (   Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement("SELECT starting_word_occurences FROM Words WHERE word = ?;")) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT starting_word_occurences FROM Words WHERE word = ?;")) {
 
-            // the word id retrieval statement, set value = to word
+            // Set the word parameter in the prepared statement and execute query
             stmt.setString(1, word);
-            // execute query and return ResultSet (object that holds sql results)
             try (ResultSet rs = stmt.executeQuery()) {
                 // read the result (pointer is pointing to before the int, hence why .next)
                 if (rs.next()) {
+                    // Return the starting word occurrence count
                     return rs.getInt("starting_word_occurences");
                 }
             }
-            //throw new SQLException("Word not found: " + word);
             System.err.println("Word not found: " + word);
         } catch (SQLException ex) {
             System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
@@ -149,19 +149,18 @@ public class DatabaseManager {
      * Written by Andersen, Khushi, and Ezzah
      */
     public static int getWordEnd(String word) {//} throws SQLException {
-        try (   Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement("SELECT ending_word_occurences FROM Words WHERE word = ?;")) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT ending_word_occurences FROM Words WHERE word = ?;")) {
 
-            // the word id retrieval statement, set value = to word
+            // Set the word parameter in the prepared statement and execute query
             stmt.setString(1, word);
-            // execute query and return ResultSet (object that holds sql results)
             try (ResultSet rs = stmt.executeQuery()) {
                 // read the result (pointer is pointing to before the int, hence why .next)
                 if (rs.next()) {
+                    // Return the ending word occurrence count
                     return rs.getInt("ending_word_occurences");
                 }
             }
-            //throw new SQLException("Word not found: " + word);
             System.err.println("Word not found: " + word);
         } catch (SQLException ex) {
             System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
@@ -176,25 +175,21 @@ public class DatabaseManager {
      * Written by Andersen, Khushi, and Ezzah
      */
     public static ArrayList<String> getAllRowsWordTextCol() {//} throws SQLException {
+        // Initialize empty list to store words
         ArrayList<String> WordList = new ArrayList<>();
 
-        try (   Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement("SELECT word FROM Words;")) {
-            // the word id retrieval statement, set value = to word
-           // stmt.setString(1, word);
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT word FROM Words;")) {
+
             // execute query and return ResultSet (object that holds sql results)
             try (ResultSet rs = stmt.executeQuery()) {
-                // read the result (pointer is pointing to before the int, hence why .next)
-                //if (rs.next()) {
-                  //  return rs.getInt("ending_word_occurences");
-                //}
+
+                // Loop through all rows in the result set
                 while (rs.next()) {
-                    // Get the next item from the result set
+                    // Get the word from current row and add it to the list
                     String word = rs.getString("word");
-                    //String suffix = getWord(suffixID, getWordStmt);
                     WordList.add(word);
                 }
-                //return WordList;
             }
         } catch (SQLException ex) {
             System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
@@ -208,34 +203,31 @@ public class DatabaseManager {
      *
      * Written by Andersen, Khushi, and Ezzah
      */
-    public static HashMap<String, Integer> getAllBigramRows() {//} throws SQLException {
+    public static HashMap<String, Integer> getAllBigramRows() {
+        // Initialize empty HashMap to store bigrams
         HashMap<String, Integer> BigramHashMap = new HashMap<>();
 
-        try (   Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Relationships;")) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Relationships;")) {
 
-            // the word id retrieval statement, set value = to word
-            // stmt.setString(1, word);
             // execute query and return ResultSet (object that holds sql results)
             try (ResultSet rs = stmt.executeQuery()) {
-                // read the result (pointer is pointing to before the int, hence why .next)
-                //if (rs.next()) {
-                //  return rs.getInt("ending_word_occurences");
-                //}
+
+                // Loop through all rows in the result set
                 while (rs.next()) {
-                    // Get the next item from the result set
+                    // Get the word IDs and freq from result set
                     int prevWordID = rs.getInt("current_word_id");
                     int currentWordID = rs.getInt("next_word_id");
                     int comboCount = rs.getInt("combination_count");
-                    //String suffix = getWord(suffixID, getWordStmt);
 
+                    // Convert IDs to word strings
                     String prevWord = getWord(prevWordID);
                     String currentWord = getWord(currentWordID);
 
+                    // Create bigram key as "word1 word2" and store it and count in hashmap
                     String hashMapKey = prevWord + " " + currentWord;
                     BigramHashMap.put(hashMapKey, comboCount);
                 }
-                //return BigramHashMap;
             }
         } catch (SQLException ex) {
             System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
@@ -251,19 +243,18 @@ public class DatabaseManager {
      * Written by Ezzah Qureshi and Andersen Breyel
      */
     private static String getWord(int ID) throws SQLException {
-        try (   Connection conn = getConnection();
-                PreparedStatement stmt = conn.prepareStatement("SELECT word FROM Words WHERE word_id = ?;")) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT word FROM Words WHERE word_id = ?;")) {
 
-            // the word id retrieval statement, set value = to word
+            // Set the word ID parameter in the prepared statement and execute query
             stmt.setInt(1, ID);
-            // execute query and return ResultSet (object that holds sql results)
             try (ResultSet rs = stmt.executeQuery()) {
                 // read the result (pointer is pointing to before the int, hence why .next)
                 if (rs.next()) {
+                    // Return the word from the result
                     return rs.getString("word");
                 }
             }
-            //throw new SQLException(" ID not found: " + ID);
             System.err.println("ID not found: " + ID);
         } catch(SQLException ex) {
             System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
@@ -278,10 +269,11 @@ public class DatabaseManager {
      * @throws SQLException if the word ID is not found or database access fails
      *                      Written by Ezzah Qureshi and Andersen Breyel
      */
-   /* public static ResultSet getWordRow(String word) {//} throws SQLException {
+    public static ResultSet getWordRow(String word) {//} throws SQLException {
         int wordID = getWordId(word);
 
-        try (PreparedStatement stmt = conn.prepareStatement("SELECT word_frequency, starting_word_occurences, ending_word_occurences FROM Words WHERE word_id = ?;")) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT word_frequency, starting_word_occurences, ending_word_occurences FROM Words WHERE word_id = ?;")) {
             // the word id retrieval statement, set value = to word
             stmt.setInt(1, wordID);
             // execute query and return ResultSet (object that holds sql results)
@@ -295,19 +287,7 @@ public class DatabaseManager {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-    }*/
-       /* // the word id retrieval statement, set value = to word
-        stmt.setInt(1, ID);
-        // execute query and return ResultSet (object that holds sql results)
-        try (ResultSet rs = stmt.executeQuery()) {
-            // read the result (pointer is pointing to before the int, hence why .next)
-            if (rs.next()) {
-                return rs.getString("word");
-            }
-        }
-        throw new SQLException(" ID not found: " + ID);
-    }*/
+    }
 
     /**
      * Helper method to get the number of words stored in the database
@@ -318,8 +298,8 @@ public class DatabaseManager {
     public int getVocabSize() {
         // Try block to catch SQL exceptions
         // Creates a statement object that will become the query
-        try (   Connection conn = getConnection();
-                Statement stmt = conn.createStatement()) {
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
             // Counts the number of rows for the first column, the primary key,
             // and stores them in an alias "NumberOfRows"
             ResultSet rs = stmt.executeQuery("SELECT COUNT(1) as NumberOfRows FROM Words");
@@ -346,8 +326,8 @@ public class DatabaseManager {
         // Prepared SQL Query String
         String checkWordSQL = "SELECT * FROM Words WHERE word = ?";
         // Try opening sql connections
-        try (   Connection conn = getConnection();
-                PreparedStatement checkWordStmt = conn.prepareStatement(checkWordSQL)) {
+        try (Connection conn = getConnection();
+             PreparedStatement checkWordStmt = conn.prepareStatement(checkWordSQL)) {
             checkWordStmt.setString(1, unigram);
             ResultSet rs = checkWordStmt.executeQuery();
             // rs.next() returns false if it's pointing to the end of the ResultSet, true otherwise
@@ -367,23 +347,16 @@ public class DatabaseManager {
      * Written by Andersen Breyel
      */
     public boolean wordsInDB(String prefix, String suffix) {
-        // SQL statement to select word_id for a given word
-        String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
         // Prepared SQL Query String
         String checkWordsSQL = "SELECT * FROM Relationships WHERE current_word_id = ? AND next_word_id = ?";
 
-       // try (
-                // Open a connection to get both prefix and suffix word IDs using prepared statements
-         //       PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL);
-           //     PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL);
-        //) {
-            // Pass prepared statements into getWordIDs to get the respective IDs
-        int prefixID = getWordId(prefix);//, getPrefixIDStmt);
-        int suffixID = getWordId(suffix);//, getSuffixIDStmt);
+        // Get the word IDs for both prefix and suffix
+        int prefixID = getWordId(prefix);
+        int suffixID = getWordId(suffix);
 
         // Try opening sql connections
-        try (   Connection conn = getConnection();
-                PreparedStatement checkWordStmt = conn.prepareStatement(checkWordsSQL)) {
+        try (Connection conn = getConnection();
+             PreparedStatement checkWordStmt = conn.prepareStatement(checkWordsSQL)) {
 
             checkWordStmt.setInt(1, prefixID);
             checkWordStmt.setInt(2, suffixID);
@@ -498,42 +471,29 @@ public class DatabaseManager {
      */
     public ArrayList<String> getPossibleBigrams(String prefix) {
         ArrayList<String> suffixList = new ArrayList<>();
-        // SQL statement to select word_id for a given word
-        //String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
-        // SQL statement to select word for a given word ID
-       // String getWordSQL = "SELECT word FROM Words WHERE word_id = ?";
         // SQL statement to get the frequency of a bigram given the two word's IDs
         String getSuffixIDsSQL = "SELECT next_word_id FROM Relationships WHERE current_word_id = ?";
-        // Open SQL connection to get word ID and catch SQL exceptions
-        //try (PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL)) {
-            // Pass prepared statement into getWordID to get the prefix ID
-        int prefixID = 0;//, getPrefixIDStmt);
-        prefixID = getWordId(prefix);
-        try (
-                    Connection conn = getConnection();
-                    PreparedStatement getSuffixIDsStmt = conn.prepareStatement(getSuffixIDsSQL);
-                  //  PreparedStatement getWordStmt = conn.prepareStatement(getWordSQL);
-            ) {
-                getSuffixIDsStmt.setInt(1, prefixID);
-                ResultSet suffixIDsRS = getSuffixIDsStmt.executeQuery();
-                // Loop through the result set
-                while (suffixIDsRS.next()) {
-                    // Get the next item from the result set
-                    int suffixID = suffixIDsRS.getInt("next_word_id");
-                    String suffix = getWord(suffixID);//, getWordStmt);
-                    suffixList.add(suffix);
-                }
-                //return suffixList;
-            } catch (SQLException ex) {
-                System.err.println("SQL error next word IDs for getPossibleBigrams method: " + ex.getMessage());
-            }
 
-        //} catch (SQLException ex) {
-          //  System.err.println("SQL error getting word IDs for getPossibleBigrams method: " + ex.getMessage());
-        //}
+        // Get the word ID for the prefix word
+        int prefixID = getWordId(prefix);
+
+        try (Connection conn = getConnection();
+             PreparedStatement getSuffixIDsStmt = conn.prepareStatement(getSuffixIDsSQL)) {
+
+            getSuffixIDsStmt.setInt(1, prefixID);
+            ResultSet suffixIDsRS = getSuffixIDsStmt.executeQuery();
+            // Loop through the result set
+            while (suffixIDsRS.next()) {
+                // Get the next item from the result set
+                int suffixID = suffixIDsRS.getInt("next_word_id");
+                String suffix = getWord(suffixID);//, getWordStmt);
+                suffixList.add(suffix);
+            }
+        } catch (SQLException ex) {
+            System.err.println("SQL error next word IDs for getPossibleBigrams method: " + ex.getMessage());
+        }
         return suffixList;
     }
-
 
     /**
      * Inserts file metadata into the Files table
@@ -836,4 +796,45 @@ public class DatabaseManager {
         }
         return probs;
     } // added
+
+
+    /**
+     * FASTER: Load all words directly into HashMap with ONE database query
+     * This replaces CreateWordHashMap() and getAllRowsWordTextCol()
+     *
+     * @return HashMap of all words with their properties
+     */
+    public static HashMap<String, Word> loadAllWordsOptimized() {
+        HashMap<String, Word> wordHashMap = new HashMap<>();
+
+        String sql = """
+                SELECT word, word_frequency, starting_word_occurences, ending_word_occurences
+                FROM Words
+                """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                String wordText = rs.getString("word");
+                int frequency = rs.getInt("word_frequency");
+                int startCount = rs.getInt("starting_word_occurences");
+                int endCount = rs.getInt("ending_word_occurences");
+
+                // Create Word object directly with values from query
+                Word word = new Word(wordText, startCount, endCount, frequency);
+                wordHashMap.put(wordText, word);
+            }
+
+            System.out.println("Loaded " + wordHashMap.size() + " words into memory");
+
+        } catch (SQLException ex) {
+            System.err.println("SQL error loading words: " + ex.getMessage());
+        }
+
+        return wordHashMap;
+    }
+
+
 }
