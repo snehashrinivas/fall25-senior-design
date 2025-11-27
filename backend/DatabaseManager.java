@@ -8,7 +8,7 @@ package backend;/*
  *
  * The class uses prepared statements for SQL queries and manages the db connection through
  * connect/disconnect methods.
- * written by Ezzah, Khushi, Sneha, and Andersen
+ * written by Ezzah, Khushi, and Andersen
  */
 
 import java.sql.Connection;
@@ -42,7 +42,7 @@ public class DatabaseManager {
                         "jdbc:mysql://localhost:3306/SentenceBuilder",
                         "root",
                         // ""
-                        "your_new_password" //"" Khushi's password // "password" Sneha's password
+                        "your_new_password" //"" Khushi's password
                 );
                 instance = new DatabaseManager(connection);
                 // System.out.println("Database connected successfully!");
@@ -360,82 +360,6 @@ public class DatabaseManager {
         return suffixList;
     }
 
-    /**
-     * Returns the top N starting words ordered by starting_word_occurences
-     * (and word_frequency as a tiebreaker).
-     *
-     * @param limit maximum number of words to return
-     * @return an ArrayList of starting words
-     * Written by Sneha Shrinivas
-     */
-    public ArrayList<String> getTopStartingWords(int limit) {
-        ArrayList<String> words = new ArrayList<>();
-
-        String getTopStartingWordsSQL = """
-            SELECT word
-            FROM Words
-            WHERE starting_word_occurences > 0
-            ORDER BY starting_word_occurences DESC, word_frequency DESC
-            LIMIT ?
-            """;
-
-        try (PreparedStatement stmt = conn.prepareStatement(getTopStartingWordsSQL)) {
-            stmt.setInt(1, limit);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    words.add(rs.getString("word"));
-                }
-            }
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting top starting words: " + ex.getMessage());
-        }
-
-        return words;
-    }
-
-    /**
-     * Returns up to N most frequent next words that follow the given prefix
-     * based on combination_count in the Relationships table.
-     *
-     * @param prefix the current word
-     * @param limit  max number of next words to return
-     * @return list of next words ordered by frequency
-     * Written by Sneha Shrinivas
-     */
-    public ArrayList<String> getTopNextWords(String prefix, int limit) {
-        ArrayList<String> nextWords = new ArrayList<>();
-
-        String getWordIdSQL = "SELECT word_id FROM Words WHERE word = ?";
-        String getTopNextWordsSQL = """
-            SELECT w.word
-            FROM Relationships r
-            JOIN Words w ON r.next_word_id = w.word_id
-            WHERE r.current_word_id = ?
-            ORDER BY r.combination_count DESC
-            LIMIT ?
-            """;
-
-        try (PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL)) {
-            // get ID for prefix
-            int prefixID = getWordId(prefix, getPrefixIDStmt);
-
-            try (PreparedStatement stmt = conn.prepareStatement(getTopNextWordsSQL)) {
-                stmt.setInt(1, prefixID);
-                stmt.setInt(2, limit);
-
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        nextWords.add(rs.getString("word"));
-                    }
-                }
-            }
-        } catch (SQLException ex) {
-            System.err.println("SQL error getting top next words: " + ex.getMessage());
-        }
-
-        return nextWords;
-    }
 
     /**
      * Inserts file metadata into the Files table
