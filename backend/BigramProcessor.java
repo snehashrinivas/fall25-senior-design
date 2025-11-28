@@ -14,19 +14,16 @@ import java.util.*;
 import java.sql.*;
 
 public class BigramProcessor {
-    private static DatabaseManager db = null;
     private static HashMap<String, Word> wordHashMap = null;
     private static HashMap<String, Integer> wordsHashMap = null;
 
     /**
      * Constructor creates dbmaanger instance and imports db tables into hashmaps
-     * @param dbManager
      * @throws SQLException
      *
      * Written by Andersen
      */
-    public BigramProcessor(DatabaseManager dbManager) {
-        BigramProcessor.db = dbManager;
+    public BigramProcessor( ){
         wordHashMap = DatabaseManager.loadAllWordsOptimized();
         wordsHashMap = DatabaseManager.loadAllBigramsOptimized();
     }
