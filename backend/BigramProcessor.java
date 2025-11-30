@@ -233,7 +233,7 @@ public class BigramProcessor {
             // Append the new word to the generated sentence
             generatedSentence = generatedSentence + nextWord + " ";
             System.out.println(generatedSentence);
-            } //else {
+           // } //else {
                 // Get the candidates for the next possible word
                 //ArrayList<String> nextPossibleWords = getNextWords(currentWord, smoothing);
                 // Store the 3 highest candidates in an arrray to pick one at random
