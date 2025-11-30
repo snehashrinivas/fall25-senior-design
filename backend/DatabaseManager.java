@@ -1,4 +1,5 @@
-package backend;/*
+package backend;
+/*
  * This class manages database operations for the Sentence Builder
  * It handles inserting words and their relationships into a MySQL database to track:
  *   - Word frequencies (how often each word appears)
@@ -14,6 +15,7 @@ package backend;/*
 import java.sql.Connection;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DatabaseManager {
     private static Connection conn;
@@ -42,7 +44,7 @@ public class DatabaseManager {
                         "jdbc:mysql://localhost:3306/SentenceBuilder",
                         "root",
                         // ""
-                        "your_new_password" //"" Khushi's password
+                        "password!" //"" Khushi's password
                 );
                 instance = new DatabaseManager(connection);
                 // System.out.println("Database connected successfully!");
@@ -98,8 +100,7 @@ public class DatabaseManager {
                 SELECT ending_word_occurences AS eos FROM Words WHERE word = ? 
                 """;
 
-        try (PreparedStatement wordEOSStmt = conn.prepareStatement(wordEOS);) {
-
+        try (PreparedStatement wordEOSStmt = conn.prepareStatement(wordEOS)) {
             wordEOSStmt.setString(1, unigram);
             ResultSet rs = wordEOSStmt.executeQuery();
 
@@ -115,7 +116,6 @@ public class DatabaseManager {
         }
         return false;
     }
-
 
     // need to put get id and countWords in here
 
@@ -204,7 +204,7 @@ public class DatabaseManager {
             // rs.next() returns false if it's pointing to the end of the ResultSet, true otherwise
             return rs.next();
         } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
+            System.err.println("SQL error checking if word exists: " + ex.getMessage());
             return false;
         }
     }
@@ -226,12 +226,11 @@ public class DatabaseManager {
         try (
                 // Open a connection to get both prefix and suffix word IDs using prepared statements
                 PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL);
-                PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL);
+                PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL)
         ) {
             // Pass prepared statements into getWordIDs to get the respective IDs
             int prefixID = getWordId(prefix, getPrefixIDStmt);
             int suffixID = getWordId(suffix, getSuffixIDStmt);
-
             // Try opening sql connections
             try (PreparedStatement checkWordStmt = conn.prepareStatement(checkWordsSQL)) {
                 checkWordStmt.setInt(1, prefixID);
@@ -239,12 +238,10 @@ public class DatabaseManager {
                 ResultSet rs = checkWordStmt.executeQuery();
                 // rs.next() returns false if it's pointing to the end of the ResultSet, true otherwise
                 return rs.next();
-            } catch (SQLException ex) {
-                System.err.println("SQL error getting number of rows of Relationship table: " + ex.getMessage());
-                return false;
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.err.println("SQL error in wordsInDB: " + e.getMessage());
+            return false;
         }
     }
 
@@ -269,7 +266,7 @@ public class DatabaseManager {
                 return rs.getInt("word_frequency");
             }
         } catch (SQLException ex) {
-            System.err.println("SQL error getting number of rows of Words table: " + ex.getMessage());
+            System.err.println("SQL error in getWordFreq: " + ex.getMessage());
         }
         // Intellij giving redline without this return statement but should be unreachable
         return 0;
@@ -292,7 +289,7 @@ public class DatabaseManager {
         try (
                 // Open a connection to get both prefix and suffix word IDs using prepared statements
                 PreparedStatement getPrefixIDStmt = conn.prepareStatement(getWordIdSQL);
-                PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL);
+                PreparedStatement getSuffixIDStmt = conn.prepareStatement(getWordIdSQL)
         ) {
             // Pass prepared statements into getWordIDs to get the respective IDs
             int prefixID = getWordId(prefix, getPrefixIDStmt);
@@ -306,12 +303,9 @@ public class DatabaseManager {
                     // Return the result of the query
                     return rs.getInt("combination_count");
                 }
-            } catch (SQLException ex) {
-                System.err.println("SQL error getting bigram freqs for getWordsFreq method: " + ex.getMessage());
             }
         } catch (SQLException ex) {
-            System.err.println("SQL error getting word IDs for getWordsFreq method: " + ex.getMessage());
-
+            System.err.println("SQL error in getWordsFreq: " + ex.getMessage());
         }
         return 0;
     }
@@ -338,7 +332,7 @@ public class DatabaseManager {
             int prefixID = getWordId(prefix, getPrefixIDStmt);
             try (
                     PreparedStatement getSuffixIDsStmt = conn.prepareStatement(getSuffixIDsSQL);
-                    PreparedStatement getWordStmt = conn.prepareStatement(getWordSQL);
+                    PreparedStatement getWordStmt = conn.prepareStatement(getWordSQL)
             ) {
                 getSuffixIDsStmt.setInt(1, prefixID);
                 ResultSet suffixIDsRS = getSuffixIDsStmt.executeQuery();
@@ -349,17 +343,12 @@ public class DatabaseManager {
                     String suffix = getWord(suffixID, getWordStmt);
                     suffixList.add(suffix);
                 }
-                return suffixList;
-            } catch (SQLException ex) {
-                System.err.println("SQL error next word IDs for getPossibleBigrams method: " + ex.getMessage());
             }
-
         } catch (SQLException ex) {
-            System.err.println("SQL error getting word IDs for getPossibleBigrams method: " + ex.getMessage());
+            System.err.println("SQL error in getPossibleBigrams: " + ex.getMessage());
         }
         return suffixList;
     }
-
 
     /**
      * Inserts file metadata into the Files table
@@ -378,14 +367,12 @@ public class DatabaseManager {
                     INSERT INTO Files (filename, file_word_count, import_date)
                     VALUES (?, ?, CURRENT_TIMESTAMP);
                 """;
-
         // send the SQL command to the database and generate file_id
         try (PreparedStatement stmt = conn.prepareStatement(insertFileSQL, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, filename);
             stmt.setInt(2, wordCount);
             // use INSERT command to store data in db
             stmt.executeUpdate();
-
             // Retrieve the auto-generated file_id
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 // check if insertion was successful
@@ -393,7 +380,6 @@ public class DatabaseManager {
                     // print a confirmation message if metadata was inserted
                     int fileId = rs.getInt(1);
                     System.out.println("File metadata inserted successfully. File ID: " + fileId);
-
                     // return file_id to caller method
                     return fileId;
                 } else {
@@ -401,21 +387,22 @@ public class DatabaseManager {
                     throw new SQLException("Failed to retrieve generated file_id");
                 }
             }
-        }
-    } // added
+        }// added
 
-    /**
-     * Inserts a single word into the Words table with its frequency and positional data.
-     * Uses ON DUPLICATE KEY UPDATE to increment frequencies if the word already exists.
-     * This method updates the word_frequency, starting_word_occurences, and ending_word_occurences
-     * based on the position of the word within a sentence.
-     *
-     * @param word      String - the word to be inserted into the database
-     * @param frequency int - the word frequency count to add
-     * @param isStart   boolean - true if the word starts a sentence, false otherwise
-     * @param isEnd     boolean - true if the word ends a sentence, false otherwise
-     * @throws SQLException Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
-     */
+        /**
+         * Inserts a single word into the Words table with its frequency and positional data.
+         * Uses ON DUPLICATE KEY UPDATE to increment frequencies if the word already exists.
+         * This method updates the word_frequency, starting_word_occurences, and ending_word_occurences
+         * based on the position of the word within a sentence.
+         *
+         * @param word      String - the word to be inserted into the database
+         * @param frequency int - the word frequency count to add
+         * @param isStart   boolean - true if the word starts a sentence, false otherwise
+         * @param isEnd     boolean - true if the word ends a sentence, false otherwise
+         * @throws SQLException Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
+         */
+    }
+
     public void insertWord(String word, int frequency, boolean isStart, boolean isEnd) throws SQLException {
         String insertWordSQL = """
                     INSERT INTO Words (word, word_frequency, starting_word_occurences, ending_word_occurences)
@@ -470,4 +457,37 @@ public class DatabaseManager {
             insertRelStmt.executeUpdate();
         }
     }
+
+    /**
+     * Returns a probability map of all next words and their bigram probabilities
+     * given a prefix word, optionally using Laplace smoothing.
+     * Written by Rida Basit
+     */
+    public HashMap<String, Double> getBigramProbabilities(String prefixWord, boolean smoothing) {
+        // create an empty list to store each next word and its probability
+        HashMap<String, Double> probs = new HashMap<>();
+        // get all the words that can come after prefixWord from the database
+        ArrayList<String> nextWords = getPossibleBigrams(prefixWord);
+        // count how many unique words are in the whole database
+        int vocabSize = getVocabSize();
+        // get how many times the prefix word appears in total
+        int prefixUnigramCount = getWordFreq(prefixWord);
+
+        for (String next : nextWords) {
+            // how many times the two words appear together in that order
+            int bigramCount = getWordsFreq(prefixWord, next);
+            double prob; //store
+            // check if smoothing should be applied
+            if (smoothing) {
+                prob = (double) (bigramCount + 1) / (prefixUnigramCount + vocabSize);
+            } else {
+                //no smoothing, divide the bigram count by the prefix word count
+                prob = prefixUnigramCount > 0 ? (double) bigramCount / prefixUnigramCount : 0.0;
+            }
+            // store the next word and its calculated probability
+            probs.put(next, prob);
+        }
+        return probs;
+    }
 }
+
