@@ -17,8 +17,8 @@ public class SceneManager {
     // initialize the manager with the app's primary Stage
     public static void init(Stage primaryStage) {
         stage = primaryStage;
-        stage.setWidth(420);   // default window width
-        stage.setHeight(480);  // default window height
+        stage.setWidth(800);   // default window width
+        stage.setHeight(800);  // default window height
     }
 
     // replace the current screen with a new one

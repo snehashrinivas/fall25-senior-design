@@ -233,22 +233,6 @@ public class BigramProcessor {
             // Append the new word to the generated sentence
             generatedSentence = generatedSentence + nextWord + " ";
             System.out.println(generatedSentence);
-           // } //else {
-                // Get the candidates for the next possible word
-                //ArrayList<String> nextPossibleWords = getNextWords(currentWord, smoothing);
-                // Store the 3 highest candidates in an arrray to pick one at random
-                //String[] topThree = new String[]{nextPossibleWords.get(0), nextPossibleWords.get(1), nextPossibleWords.get(2)};
-                //nextWord = pickFromThree(topThree);
-                // Append the new word to the generated sentence
-                //generatedSentence = generatedSentence + nextWord + " ";
-                //System.out.println(generatedSentence);
-                // If the newly appended word is the eos token break out of the loop
-                // dbmanager method that returns a boolean, if that word ever ends a sentence just end the sentence
-                //if (DatabaseManager.wordEndsSentence(nextWord)) {//nextWord.equals("</s>")) {
-                //    break;
-                //}
-                // Update the current word to be the newly appended word
-                //currentWord = nextWord;
 
             // If the newly appended word is the eos token break out of the loop
             if (DatabaseManager.wordEndsSentence(nextWord)) {

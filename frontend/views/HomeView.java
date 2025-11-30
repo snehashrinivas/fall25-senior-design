@@ -1,15 +1,18 @@
 /*
-Written by Rida Basit. RXB210086
+Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371
 The main screen where the user starts building a sentence,
-now using a dropdown to select a starting word.
+now using a dropdown to select a starting word and then either selecting the options of sentence generation or
+word completion.
 */
+
 package frontend.views;
 import frontend.views.Views;
 import frontend.views.MainView;
 import frontend.views.FeedbackView;
 import frontend.views.AutocompleteView;
-
 import frontend.SceneManager;
+import backend.DatabaseManager;
+
 import frontend.services.SentenceService;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -19,6 +22,11 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class HomeView {
 
@@ -49,9 +57,39 @@ public class HomeView {
         );
 
         ComboBox<String> wordDropdown = new ComboBox<>();
-        wordDropdown.getItems().addAll(
-                "The", "A", "My", "This", "Our", "Your", "His", "Her", "Their"
-        );
+
+        // Load top 10 starting words from the database
+        List<String> startingWords = new ArrayList<>();
+        try {
+            DatabaseManager db = DatabaseManager.getInstance();
+            startingWords = db.getTopStartingWords(10);
+        } catch (SQLException e) {
+            System.err.println("Error loading starting words from DB: " + e.getMessage());
+        }
+
+        // If DB returned nothing, you can optionally fall back to a default list
+        if (startingWords.isEmpty()) {
+            startingWords = List.of("A", "Her", "His", "My",  "Our", "The", "Their", "This",  "Your");
+        }
+
+        // Alphabetize them for the dropdown
+        Collections.sort(startingWords, String.CASE_INSENSITIVE_ORDER);
+
+        /// 2) Capitalize for display (so we see “He”, “I”, “My”, etc.)
+        List<String> displayWords = new ArrayList<>();
+        for (String w : startingWords) {
+            if (w == null || w.isBlank()) continue;
+            String lower = w.toLowerCase();
+            if (lower.equals("i")) {
+                displayWords.add("I");
+            } else {
+                displayWords.add(Character.toUpperCase(lower.charAt(0)) + lower.substring(1));
+            }
+        }
+
+        // Put the pretty versions into the dropdown
+        wordDropdown.getItems().setAll(displayWords);
+
         wordDropdown.setPromptText("Select your first word");
         wordDropdown.setEditable(false);
         wordDropdown.setPrefWidth(240);

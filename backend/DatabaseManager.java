@@ -9,7 +9,7 @@ package backend;
  *
  * The class uses prepared statements for SQL queries and manages the db connection through
  * connect/disconnect methods.
- * written by Ezzah, Khushi, and Andersen
+ * written by Ezzah, Khushi, Sneha, and Andersen
  */
 
 import java.sql.Connection;
@@ -44,7 +44,7 @@ public class DatabaseManager {
                         "jdbc:mysql://localhost:3306/SentenceBuilder",
                         "root",
                         // ""
-                        "password!" //"" Khushi's password
+                        "password" //"" Khushi's password
                 );
                 instance = new DatabaseManager(connection);
                 // System.out.println("Database connected successfully!");
@@ -358,49 +358,71 @@ public class DatabaseManager {
      * @param wordCount Total number of words processed from the file
      * @return The generated file_id for the inserted record
      * @throws SQLException if a database access error occurs
-     *                      Written by Khushi Dubey
+     *                      Written by Khushi Dubey and Sneha Shrinivas
      */
     public int insertFileMetadata(String filename, int wordCount) throws SQLException {
         // define query to insert file metadata into Files db
         // use CURRENT_TIMESTAMP to record when the file was inserted
         String insertFileSQL = """
-                    INSERT INTO Files (filename, file_word_count, import_date)
-                    VALUES (?, ?, CURRENT_TIMESTAMP);
-                """;
+                INSERT INTO Files (filename, file_word_count, import_date)
+                VALUES (?, ?, CURRENT_TIMESTAMP);
+            """;
+
         // send the SQL command to the database and generate file_id
         try (PreparedStatement stmt = conn.prepareStatement(insertFileSQL, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, filename);
             stmt.setInt(2, wordCount);
             // use INSERT command to store data in db
             stmt.executeUpdate();
+
             // Retrieve the auto-generated file_id
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 // check if insertion was successful
                 if (rs.next()) {
-                    // print a confirmation message if metadata was inserted
                     int fileId = rs.getInt(1);
                     System.out.println("File metadata inserted successfully. File ID: " + fileId);
-                    // return file_id to caller method
                     return fileId;
                 } else {
                     // throw an error if file metadata was not stored correctly
                     throw new SQLException("Failed to retrieve generated file_id");
                 }
             }
-        }// added
+        }
+    }
 
-        /**
-         * Inserts a single word into the Words table with its frequency and positional data.
-         * Uses ON DUPLICATE KEY UPDATE to increment frequencies if the word already exists.
-         * This method updates the word_frequency, starting_word_occurences, and ending_word_occurences
-         * based on the position of the word within a sentence.
-         *
-         * @param word      String - the word to be inserted into the database
-         * @param frequency int - the word frequency count to add
-         * @param isStart   boolean - true if the word starts a sentence, false otherwise
-         * @param isEnd     boolean - true if the word ends a sentence, false otherwise
-         * @throws SQLException Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
-         */
+    /**
+     * Returns the top N starting words ordered by starting_word_occurences
+     * (and word_frequency as a tiebreaker).
+     * Used by the frontend to display the top 10 words in the HomeView
+     *
+     * @param limit maximum number of words to return
+     * @return an ArrayList of starting words
+     * Written by Sneha Shrinivas
+     */
+    public ArrayList<String> getTopStartingWords(int limit) {
+        ArrayList<String> words = new ArrayList<>();
+
+        String sql = """
+            SELECT word
+            FROM Words
+            WHERE starting_word_occurences > 0
+            ORDER BY starting_word_occurences DESC, word_frequency DESC
+            LIMIT ?
+            """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, limit);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    words.add(rs.getString("word"));
+                }
+            }
+        } catch (SQLException ex) {
+            System.err.println("SQL error getting top starting words: " + ex.getMessage());
+        }
+
+        return words;
     }
 
     public void insertWord(String word, int frequency, boolean isStart, boolean isEnd) throws SQLException {
