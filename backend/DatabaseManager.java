@@ -175,7 +175,8 @@ public class DatabaseManager {
             LIMIT ?
             """;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (   Connection conn = getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, limit);
 
             try (ResultSet rs = stmt.executeQuery()) {
