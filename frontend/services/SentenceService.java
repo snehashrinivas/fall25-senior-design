@@ -3,7 +3,6 @@ package frontend.services;
 
 // import classes from other packages
 import backend.BigramProcessor;
-import backend.DatabaseManager;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -12,15 +11,15 @@ import java.util.List;
  * It utilizes BigramProcessor to generate sentences using the user's inputted word and DatabaseManager to
  * access the parsed data. The class is implemented as a Singleton — only one instance exists throughout the
  * application.
+ *
+ * Written by khushi
  */
 public class SentenceService {
     private static BigramProcessor processor;
-    private static DatabaseManager dbManager;
     private static SentenceService instance;
 
     // Private constructor for singleton pattern
-    private SentenceService(DatabaseManager dbManager, BigramProcessor processor) {
-        this.dbManager = dbManager;
+    private SentenceService(BigramProcessor processor) {
         this.processor = processor;
     }
 
@@ -31,9 +30,9 @@ public class SentenceService {
      */
     public static void initialize() throws SQLException {
         if (instance == null) {
-            dbManager = DatabaseManager.getInstance();
-            processor = new BigramProcessor(dbManager);
-            instance = new SentenceService(dbManager, processor);
+            // BigramProcessor handles its own database connections, no instance of dbmanager
+            processor = new BigramProcessor();
+            instance = new SentenceService(processor);
             System.out.println("SentenceService initialized successfully!");
         }
     }
@@ -43,6 +42,7 @@ public class SentenceService {
      * Written by Khushi Dubey
      */
     public static SentenceService getInstance() {
+        // see if instance is null
         if (instance == null) {
             throw new IllegalStateException("SentenceService not initialized. Call initialize() first.");
         }
@@ -65,7 +65,7 @@ public class SentenceService {
             String cleanPrefix = prefix.trim();
 
             // Generate sentence with max 10 words, using smoothing
-            String result = BigramProcessor.generateSentence(cleanPrefix, 10, true);
+            String result = BigramProcessor.generateSentenceTopOne(cleanPrefix, 10, true);
 
             // Check if generation was successful
             if (result == null || result.trim().isEmpty()) {
@@ -116,9 +116,7 @@ public class SentenceService {
      * Written by Khushi Dubey
      */
     public static void shutdown() {
-        if (dbManager != null) {
-            dbManager.disconnect();
-            System.out.println("SentenceService shut down.");
-        }
+        System.out.println("SentenceService shut down.");
+        instance = null;
     }
 }

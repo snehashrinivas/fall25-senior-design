@@ -11,19 +11,19 @@ and end of sentence/beginning of sentence frequency counts.
 */
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.io.*;
 import java.util.Scanner;
 
 public class UpdatedPreProcessing {
-
-    // JDBC connection to database
-    private static Connection conn = null;
     private static DatabaseManager dbManager = null;
 
-
-    public UpdatedPreProcessing(DatabaseManager dbManager) throws SQLException {//Connection conn, backend.backend.DatabaseManager dbManager) {
-        UpdatedPreProcessing.conn = dbManager.getConnection(); // assign to static member
+    /**
+     * Constructor
+     *
+     * @param dbManager instance of DatabaseManager
+     * Written by Ezzah
+     */
+    public UpdatedPreProcessing(DatabaseManager dbManager) {
         UpdatedPreProcessing.dbManager = dbManager;
     }
 
@@ -35,6 +35,7 @@ public class UpdatedPreProcessing {
      * Written by Andersen Breyel
      */
     private static Scanner importFile(String fileName) {
+        // try to create a scanner
         try {
             return new Scanner(new File(fileName));
         } catch (FileNotFoundException e) {
@@ -115,11 +116,10 @@ public class UpdatedPreProcessing {
      * with their non-accented equivalent letters. As each character is parsed, only alphabetic
      * letters and numbers are kept
      * @param word The word that needs to be preprocessed
-     * //@param accentsFile File that stores the equivalent non-accented letters for the accented letters
      * @return preprocessed, lowercase version of input word that contains only digits and alphabetical letters
      * Written by Khushi Dubey
      */
-    private static String cleanWord(String word){//, Scanner accentsFile) {
+    private static String cleanWord(String word){
         // preprocessed word
         StringBuilder cleaned = new StringBuilder();
 
@@ -145,7 +145,7 @@ public class UpdatedPreProcessing {
                 continue;
             }
 
-            // skip over symbols and numbers (AFTER checking for accents)
+            // skip over symbols and numbers (after checking for accents)
             if (checkIfMiscellaneous(currentChar)) continue;
 
             // append normal character as per regular
@@ -161,20 +161,17 @@ public class UpdatedPreProcessing {
      * before calling the method countWords to update the database
      * while keeping track of words added
      * @param textFile   Scanner object of the text document to preprocess
-     * @param asciiFile  Scanner object of ascii file used by the method cleanWords to convert ascii characters
      * @return           int of the number of words added to the database
      * Written by Andersen Breyel
      */
-    private static int preprocess(Scanner textFile, Scanner asciiFile) throws SQLException {
+    private static int preprocess(Scanner textFile) throws SQLException {
         // track total number of words
         int count = 0;
         boolean isItFirstWord = true;
         String previousWord = null;
-       // ArrayList<String> currentSentence = new ArrayList<>();
 
         // Process the text line by line (newlines are ignored)
         while (textFile.hasNextLine()) {
-            // process line by line
             String line = textFile.nextLine().trim();
 
             // skip empty lines
@@ -188,7 +185,7 @@ public class UpdatedPreProcessing {
                 if (rawToken.isEmpty()) continue;
 
                 // Clean token (removes garbage & converts accents but keeps punctuation)
-                String cleanedWord = cleanWord(rawToken);//, accentScanner); //asciiFile);
+                String cleanedWord = cleanWord(rawToken);
 
                 // skip word if it becomes empty after cleaning it
                 if (cleanedWord == null || cleanedWord.isEmpty()) {
@@ -206,55 +203,77 @@ public class UpdatedPreProcessing {
                     if (cleanedWord.length() == 1) {
                         String punctuation = cleanedWord;
 
-                        // Insert punctuation as end-of-sentence marker
-                        dbManager.insertWord(punctuation, 1, false, true); // we need this function
-                        //currentSentence.add(Character.toString(lastChar));
+                        // Create Word object for punctuation
+                        Word punctuationWord = new Word(punctuation, 0, 1, 1);
+                        dbManager.insertWord(punctuationWord);
                         count++;
 
-                        // If there was a previous word, insert the bigram relationship
+                        // If there was a previous word, get the word IDs and create Relationship object and insert bigrams
                         if (previousWord != null) {
-                            dbManager.insertBigram(previousWord, punctuation);
+                            int previousWordID = dbManager.getWordId(previousWord);
+                            int punctuationID = dbManager.getWordId(punctuation);
+                            Relationship rel = new Relationship(previousWordID, punctuationID, 1);
+                            dbManager.insertBigram(rel);
                         }
 
+                        // set booleans
                         previousWord = null;
                         isItFirstWord = true;
                     } else {
                         // Add the word minus punctuation
                         String wordPart = cleanedWord.substring(0, cleanedWord.length() - 1);
                         String punctuation = Character.toString(lastChar);
-                        //currentSentence.add(trimmed);
+
+                        // check the bool value
+                        int firstWordInt = isItFirstWord ? 1 : 0;
 
                         // Send word part and insert bigram from previous word
-                        dbManager.insertWord(wordPart, 1, isItFirstWord, false);
+                        // Create Word object for the word part
+                        Word wordPartObj = new Word(wordPart, firstWordInt, 0, 1);
+                        dbManager.insertWord(wordPartObj);
                         count++;
 
+                        // If there was a previous word, get the word IDs and create Relationship object and insert bigrams
                         if (previousWord != null) {
-                            dbManager.insertBigram(previousWord, wordPart);
+                            int previousWordID = dbManager.getWordId(previousWord);
+                            int wordPartID = dbManager.getWordId(wordPart);
+                            Relationship rel1 = new Relationship(previousWordID, wordPartID, 1);
+                            dbManager.insertBigram(rel1);
                         }
-                        previousWord = wordPart;
 
                         // Send punctuation as end-of-sentence marker
-                        dbManager.insertWord(punctuation, 1, false, true);
-                        // Add the punctuation itself as a separate token
-                        // currentSentence.add(Character.toString(lastChar));
+                        // Create Word object for punctuation
+                        Word punctuationObj = new Word(punctuation, 0, 1, 1);
+                        dbManager.insertWord(punctuationObj);
                         count++;
 
                         // Insert bigram from word to punctuation
-                        dbManager.insertBigram(wordPart, punctuation);
-                        previousWord = punctuation;
+                        int wordPartID = dbManager.getWordId(wordPart);
+                        int punctuationID = dbManager.getWordId(punctuation);
+                        Relationship rel2 = new Relationship(wordPartID, punctuationID, 1);
+                        dbManager.insertBigram(rel2);
 
+                        // set bools
+                        previousWord = null;
                         isItFirstWord = true;
                     }
                 } else {
+                    // check boolean value
+                    int firstWordInt = isItFirstWord ? 1 : 0;
                     // Regular word without punctuation
-                    dbManager.insertWord(cleanedWord, 1, isItFirstWord, false);
+                    Word wordObj = new Word(cleanedWord, firstWordInt, 0, 1);
+                    dbManager.insertWord(wordObj);
                     count++;
 
-                    // If there was a previous word, insert the bigram relationship
+                    // If there was a previous word, get word IDs and insert the bigram relationship
                     if (previousWord != null) {
-                        dbManager.insertBigram(previousWord, cleanedWord);
+                        int previousWordID = dbManager.getWordId(previousWord);
+                        int cleanedWordID = dbManager.getWordId(cleanedWord);
+                        Relationship rel = new Relationship(previousWordID, cleanedWordID,1);
+                        dbManager.insertBigram(rel);
                     }
 
+                    // set bools
                     previousWord = cleanedWord;
                     isItFirstWord = false;
                     // If it’s a sentence-ending punctuation mark, also add </s>
@@ -390,23 +409,13 @@ public class UpdatedPreProcessing {
                     continue;
                 }
 
-                // Check if file has content, Debugging statements
-                System.err.println("[DEBUG] Checking if file has lines...");
-                if (currentFile.hasNextLine()) {
-                    System.out.println("[DEBUG] File HAS lines");
-                } else {
-                    System.out.println("[DEBUG] File is EMPTY or already consumed");
-                }
-                System.out.println("[DEBUG] About to call preprocess...");
-
-                System.out.println("Processing file...");
-
                 // if it exists, preprocess the file and output its total word count
                 try {
-                    fileWordCount = preprocess(currentFile, asciiFile);
-                    System.out.println("[DEBUG] preprocess returned: " + fileWordCount);
-                    // Insert file metadata into database
-                    dbManager.insertFileMetadata(fileName, fileWordCount); // added
+                    fileWordCount = preprocess(currentFile);
+
+                    // Create a Document object and insert it
+                    Document doc = new Document(fileName, fileWordCount);
+                    dbManager.insertFileMetadata(doc);
 
                 } catch (Exception e) {
                     System.err.println("[ERROR in preprocess]: " + e.getMessage());
