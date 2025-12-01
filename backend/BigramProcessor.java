@@ -276,7 +276,7 @@ public class BigramProcessor {
      */
     public static String generateSentenceWeighted(String prefixSentence, int n, boolean smoothing) {
         // Tokenize the sentence into an array of words by splitting it on whitespaces
-        String[] tokenizedSentence = prefixSentence.split(" ");
+        String[] tokenizedSentence = prefixSentence.toLowerCase().split(" ");
         // Start from the last word of the prefix sentence
         String currentWord = tokenizedSentence[tokenizedSentence.length - 1];
         System.out.println("this is " + currentWord);
@@ -335,7 +335,7 @@ public class BigramProcessor {
      */
     public static String generateSentenceThreeRandom(String prefixSentence, int n, boolean smoothing) {
         // Tokenize the sentence into an array of words by splitting it on whitespaces
-        String[] tokenizedSentence = prefixSentence.split(" ");
+        String[] tokenizedSentence = prefixSentence.toLowerCase().split(" ");
         // Start from the last word of the prefix sentence
         String currentWord = tokenizedSentence[(tokenizedSentence.length - 1)];
         System.out.println("this is " + currentWord);
@@ -414,7 +414,7 @@ public class BigramProcessor {
      */
     public static String generateSentenceTopOne(String prefixSentence, int n, boolean smoothing) {
         // Tokenize the sentence into an array of words by splitting it on whitespaces
-        String[] tokenizedSentence = prefixSentence.split(" ");
+        String[] tokenizedSentence = prefixSentence.toLowerCase().split(" ");
 
         // Start from the last word of the prefix sentence
         String currentWord = tokenizedSentence[(tokenizedSentence.length - 1)];

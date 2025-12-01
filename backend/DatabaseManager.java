@@ -164,7 +164,7 @@ public class DatabaseManager {
      * @return an ArrayList of starting words
      * Written by Sneha Shrinivas
      */
-    public ArrayList<String> getTopStartingWords(int limit) {
+    public static ArrayList<String> getTopStartingWords(int limit) {
         ArrayList<String> words = new ArrayList<>();
 
         String sql = """

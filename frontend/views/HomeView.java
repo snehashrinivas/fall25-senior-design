@@ -1,5 +1,6 @@
 /*
 Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371
+edited by Ezzah eaq210000
 The main screen where the user starts building a sentence,
 now using a dropdown to select a starting word and then either selecting the options of sentence generation or
 word completion.
@@ -60,12 +61,9 @@ public class HomeView {
 
         // Load top 10 starting words from the database
         List<String> startingWords = new ArrayList<>();
-        try {
-            DatabaseManager db = DatabaseManager.getInstance();
-            startingWords = db.getTopStartingWords(10);
-        } catch (SQLException e) {
-            System.err.println("Error loading starting words from DB: " + e.getMessage());
-        }
+        //DatabaseManager db = DatabaseManager.getInstance();
+        //startingWords = db.getTopStartingWords(10);
+        startingWords = DatabaseManager.getTopStartingWords(10);
 
         // If DB returned nothing, you can optionally fall back to a default list
         if (startingWords.isEmpty()) {

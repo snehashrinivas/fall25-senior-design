@@ -1,14 +1,15 @@
-package backend;/*
-This program takes in a text file, parses its words, cleans their contents, and stores them in a database.
-Cleaning words involves converting accented letters to their regular characters, removing miscellaneous
-characters, converting words to lowercase, and adding end of sentence tokens. Lines are processed
-one at a time, split into tokens, cleaned, and inserted into the database through the backend.backend.DatabaseManager
-object. End of sentences are marked with "</s>".
-
-The main purpose of this program is to count the total number of words in the file, store word frequency counts,
-and end of sentence/beginning of sentence frequency counts.
-
-*/
+package backend;
+/**
+ * This program takes in a text file, parses its words, cleans their contents, and stores them in a database.
+ * Cleaning words involves converting accented letters to their regular characters, removing miscellaneous
+ * characters, converting words to lowercase. Lines are processed one at a time, split into tokens, cleaned,
+ * and inserted into the database through the backend.DatabaseManager object.
+ *
+ * The main purpose of this program is to count the total number of words in the file, store word frequency counts,
+ * and end of sentence/beginning of sentence frequency counts.
+ *
+ * written by Ezzah, Andersen, Khushi
+ */
 
 import java.sql.*;
 import java.io.*;
@@ -276,36 +277,9 @@ public class UpdatedPreProcessing {
                     // set bools
                     previousWord = cleanedWord;
                     isItFirstWord = false;
-                    // If it’s a sentence-ending punctuation mark, also add </s>
-                    //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
-                    //currentSentence.add("</s>");
-                    //count++;
-
-                    // send word to database for counting
-                    //dbManager.countWords(currentSentence);
-                    // clear list to process next sentence
-                    //currentSentence.clear();
-                    // } else {
-                    // Just add the cleaned word normally
-                    // currentSentence.add(cleanedWord);
-                   // count++;
-                    //}
                 }
             }
         }
-        // Handle any leftover words at the end (no punctuation)
-        /*if (!currentSentence.isEmpty()) {
-            // add end of sentence token
-            //currentSentence.add("</s>");
-            dbManager.countWords(currentSentence);
-
-            // increment count for remaining tokens
-            count += currentSentence.size();
-            currentSentence.clear();
-        }
-        // return total number of words processed
-
-         */
         return count;
     }
 
@@ -317,12 +291,13 @@ public class UpdatedPreProcessing {
     public static void processFileFromGui(File file) {
         try {
             // Get or create DB connection
-            DatabaseManager dbManager = DatabaseManager.getInstance();
+            //DatabaseManager dbManager = DatabaseManager.getInstance();
+            DatabaseManager dbManager = new DatabaseManager();
 
-            if (!dbManager.isConnected()) {
+            /*if (!dbManager.isConnected()) {
                 System.err.println("Could not connect to DB.");
                 return;
-            }
+            }*/
 
             // Initialize static conn/dbManager fields
             new UpdatedPreProcessing(dbManager);
@@ -358,8 +333,13 @@ public class UpdatedPreProcessing {
 
         int fileWordCount = 0;
         try {
-            fileWordCount = preprocess(currentFile, asciiFile);
-            dbManager.insertFileMetadata(file.getName(), fileWordCount);
+            //fileWordCount = preprocess(currentFile, asciiFile);
+            //dbManager.insertFileMetadata(file.getName(), fileWordCount);
+
+            fileWordCount = preprocess(currentFile);
+            Document doc = new Document(file.getName(), fileWordCount);
+            dbManager.insertFileMetadata(doc);
+
             System.out.println("Finished processing " + file.getName()
                     + " (word count = " + fileWordCount + ")");
         } catch (Exception e) {
