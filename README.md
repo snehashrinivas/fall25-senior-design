@@ -22,6 +22,7 @@ Database Schema:
 
 JavaFX Frontend:
 - Home: Choose first word; buttons for Generate Sentence and Auto Complete
+- Sidebar: Enter and parse file, options to go to Home Page
 - Word Completion: shows three suggested next words with Re-Roll and Finish
 - Feedback: shows generated sentence and a clickable 1–5 star rating
 - Thank You: confirmation screen with Back to Home
@@ -41,6 +42,6 @@ How to setup project
 - Create Run Configuration -> Application:
 - Main class: frontend.FrontendMain
 - VM options (adjust the path to your JavaFX SDK):
-- macOS/Linux: --module-path "/path/to/javafx-sdk-25.0.1/lib" --add-modules javafx.controls,javafx.fxml
-- Windows: --module-path "C:\path\to\javafx-sdk-25.0.1\lib" --add-modules javafx.controls,javafx.fxml
+    - macOS/Linux: --module-path "/path/to/javafx-sdk-25.0.1/lib" --add-modules javafx.controls,javafx.fxml
+    - Windows: --module-path "C:\path\to\javafx-sdk-25.0.1\lib" --add-modules javafx.controls,javafx.fxml
 - Run the configuration.
