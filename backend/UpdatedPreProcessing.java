@@ -1,6 +1,6 @@
 package backend;/*
 This program takes in a text file, parses its words, cleans their contents, and stores them in a database.
-Cleaning words involves converting accented letters to their regular characters, removing miscallaneous
+Cleaning words involves converting accented letters to their regular characters, removing miscellaneous
 characters, converting words to lowercase, and adding end of sentence tokens. Lines are processed
 one at a time, split into tokens, cleaned, and inserted into the database through the backend.backend.DatabaseManager
 object. End of sentences are marked with "</s>".
@@ -276,10 +276,99 @@ public class UpdatedPreProcessing {
                     // set bools
                     previousWord = cleanedWord;
                     isItFirstWord = false;
+                    // If it’s a sentence-ending punctuation mark, also add </s>
+                    //if (lastChar == '.' || lastChar == '!' || lastChar == '?') {
+                    //currentSentence.add("</s>");
+                    //count++;
+
+                    // send word to database for counting
+                    //dbManager.countWords(currentSentence);
+                    // clear list to process next sentence
+                    //currentSentence.clear();
+                    // } else {
+                    // Just add the cleaned word normally
+                    // currentSentence.add(cleanedWord);
+                   // count++;
+                    //}
                 }
             }
         }
+        // Handle any leftover words at the end (no punctuation)
+        /*if (!currentSentence.isEmpty()) {
+            // add end of sentence token
+            //currentSentence.add("</s>");
+            dbManager.countWords(currentSentence);
+
+            // increment count for remaining tokens
+            count += currentSentence.size();
+            currentSentence.clear();
+        }
+        // return total number of words processed
+
+         */
         return count;
+    }
+
+    /*
+    This method uses processSingleFile to process a file that is imported from the frontend GUI
+    @param file File object representing the text file to be processed
+    Written by Sneha Shrinivas
+     */
+    public static void processFileFromGui(File file) {
+        try {
+            // Get or create DB connection
+            DatabaseManager dbManager = DatabaseManager.getInstance();
+
+            if (!dbManager.isConnected()) {
+                System.err.println("Could not connect to DB.");
+                return;
+            }
+
+            // Initialize static conn/dbManager fields
+            new UpdatedPreProcessing(dbManager);
+
+            // Re-use the single-file logic (same as CLI, but no user prompts)
+            processSingleFile(dbManager, file);
+
+            // Optionally: don't disconnect so the app can reuse the connection
+            // dbManager.disconnect();
+
+        } catch (Exception e) {
+            System.err.println("Error processing uploaded file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /*
+    Method written to process a single file that is imported from the frontend - helper to processFileFromGui
+    @param dbManager DatabaseManager object to interact with the database
+    @param file File object representing the text file to be processed
+    @throws SQLException if a database access error occurs
+    Written by Sneha Shrinivas
+     */
+    public static void processSingleFile(DatabaseManager dbManager, File file) throws SQLException {
+        Scanner asciiFile = importFile("accents.txt");
+
+        Scanner currentFile = importFile(file.getAbsolutePath());
+        if (currentFile == null) {
+            System.out.println("File not found: " + file.getAbsolutePath());
+            if (asciiFile != null) asciiFile.close();
+            return;
+        }
+
+        int fileWordCount = 0;
+        try {
+            fileWordCount = preprocess(currentFile, asciiFile);
+            dbManager.insertFileMetadata(file.getName(), fileWordCount);
+            System.out.println("Finished processing " + file.getName()
+                    + " (word count = " + fileWordCount + ")");
+        } catch (Exception e) {
+            System.err.println("[ERROR in processSingleFile]: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            currentFile.close();
+            if (asciiFile != null) asciiFile.close();
+        }
     }
 
     /**

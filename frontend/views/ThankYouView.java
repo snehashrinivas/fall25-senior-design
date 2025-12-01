@@ -1,5 +1,5 @@
 /*
-Written by Rida Basit. RXB210086
+Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371
 Displays a thank you or completion message
 after finishing sentence generation or feedback.
  */
