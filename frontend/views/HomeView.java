@@ -23,6 +23,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -98,6 +100,36 @@ public class HomeView {
                         "-fx-padding: 4 10 4 10;"
         );
 
+        // ===== NEW: Algorithm Selection with Radio Buttons =====
+        Label algorithmLabel = new Label("Choose generation algorithm:");
+        algorithmLabel.setStyle(
+                "-fx-font-size: 13;" +
+                        "-fx-font-weight: 600;" +
+                        "-fx-text-fill: " + Views.TEXT_DEFAULT + ";"
+        );
+
+        // Create ToggleGroup for radio buttons (only one can be selected at a time)
+        ToggleGroup algorithmGroup = new ToggleGroup();
+
+        // Create three radio buttons for each algorithm
+        RadioButton radioWeighted = new RadioButton("Weighted (Probability-based)");
+        radioWeighted.setToggleGroup(algorithmGroup);
+        radioWeighted.setSelected(true); // Default selection
+        radioWeighted.setStyle("-fx-font-size: 12; -fx-text-fill: " + Views.TEXT_DEFAULT + ";");
+
+        RadioButton radioThreeRandom = new RadioButton("Three Random (Top 3 Random)");
+        radioThreeRandom.setToggleGroup(algorithmGroup);
+        radioThreeRandom.setStyle("-fx-font-size: 12; -fx-text-fill: " + Views.TEXT_DEFAULT + ";");
+
+        RadioButton radioTopOne = new RadioButton("Top One (Deterministic)");
+        radioTopOne.setToggleGroup(algorithmGroup);
+        radioTopOne.setStyle("-fx-font-size: 12; -fx-text-fill: " + Views.TEXT_DEFAULT + ";");
+
+        // Create a VBox to hold the radio buttons
+        VBox radioBox = new VBox(8, radioWeighted, radioThreeRandom, radioTopOne);
+        radioBox.setStyle("-fx-padding: 10; -fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-border-width: 1;");
+
+
         // primary actions (use shared button styles)
         Button btnGenerate = Views.primaryButton("Generate Sentence");
         Button btnAuto     = Views.secondaryButton("Word Completion");
@@ -119,7 +151,18 @@ public class HomeView {
 
             try {
                 SentenceService service = SentenceService.getInstance();
-                String generatedSentence = service.generateSentence(firstWord);
+                //String generatedSentence = service.generateSentence(firstWord);
+
+                // Determine which algorithm to use based on selected radio button
+                String generatedSentence;
+                if (radioWeighted.isSelected()) {
+                    generatedSentence = service.generateSentenceWeighted(firstWord);
+                } else if (radioThreeRandom.isSelected()) {
+                    generatedSentence = service.generateSentenceThreeRandom(firstWord);
+                } else {
+                    generatedSentence = service.generateSentenceTopOne(firstWord);
+                }
+
                 MainView.setCenter(FeedbackView.create(generatedSentence), "Feedback");
             } catch (Exception ex) {
                 System.err.println("Error: " + ex.getMessage());
@@ -157,6 +200,10 @@ public class HomeView {
                 new Label(""),
                 title,
                 wordDropdown,
+                new Label(""),
+                algorithmLabel,
+                radioBox,
+                new Label(""),
                 row
         );
         card.setMaxWidth(420);
