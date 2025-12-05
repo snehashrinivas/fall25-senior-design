@@ -1,6 +1,6 @@
-/*
-Written by Rida Basit and Sneha Shrinivas . RXB210086, sxs210371
+/**
 Holds shared helper methods for creating consistent UI elements
+ Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371
 */
 package frontend.views;
 
@@ -36,7 +36,12 @@ public class Views {
         return t;
     }
 
-    // Primary button (solid accent)
+    /**
+    Creates a primary button with filled styling.
+    @param text the button text
+    @return the stylized button
+    Written by Sneha Shrinivas
+     */
     public static Button primaryButton(String text) {
         Button b = new Button(text);
         b.setStyle(

@@ -1,6 +1,6 @@
-/*
-Written by Rida Basit, Sneha Shrinivas, and Khushi Dubey. RXB210086, sxs210371, kad210008
+/**
 Shows the final generated sentence or results after user interaction.
+ Written by Rida Basit, Sneha Shrinivas, and Khushi Dubey. RXB210086, sxs210371, kad210008
 */
 package frontend.views;
 import frontend.views.Views;

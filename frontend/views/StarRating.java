@@ -1,6 +1,6 @@
-/*
-Written by Rida Basit. RXB210086
+/**
 Provides a rating component (user feedback) with clickable stars.
+ Written by Rida Basit. RXB210086
 */
 package frontend.views;
 

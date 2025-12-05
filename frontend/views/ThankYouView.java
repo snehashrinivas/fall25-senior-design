@@ -1,7 +1,7 @@
 /**
-Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371
 Displays a thank you or completion message
 after finishing sentence generation or feedback.
+ Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371
  */
 package frontend.views;
 import frontend.views.MainView;

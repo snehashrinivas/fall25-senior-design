@@ -1,8 +1,8 @@
 /**
-Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371, edited by Ezzah Qureshi eaq210000
 The main screen where the user starts building a sentence,
 now using a dropdown to select a starting word and then either selecting the options of sentence generation or
 word completion.
+ Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371, edited by Ezzah Qureshi eaq210000
 */
 
 package frontend.views;

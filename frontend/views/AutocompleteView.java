@@ -1,7 +1,7 @@
-/*
-Written by Rida Basit. RXB210086
+/**
 Displays suggested words the user can click to continue building a sentence
 with reroll and finish options.
+ Written by Rida Basit. RXB210086
 */
 package frontend.views;
 

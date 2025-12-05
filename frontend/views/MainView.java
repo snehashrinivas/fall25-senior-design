@@ -72,7 +72,7 @@ public class MainView {
 
         header.getChildren().addAll(menuToggle, title, spacer, subtitle);
 
-        // Sidebar (collapsible)
+        // Collapsible sidebar
         side = buildSidebar(subtitle);
         root.setLeft(side);
 

@@ -3,7 +3,6 @@ package backend;
 /**
  * Main program that runs the preprocessing of text
  * creates an instance of database manager and updatedpreprocessing
- *
  * written by Ezzah and Khushi
  */
 

@@ -1,7 +1,6 @@
-/*
-Written by Rida Basit. RXB210086
-The entry point of the JavaFX app;
-initializes the stage and shows the main scene.
+/**
+This forms the entry point of the JavaFX app; it initializes the stage and shows the main scene.
+ Written by Rida Basit, Sneha Shrinivas, and Khushi Dubey. RXB210086, sxs210371, kad210008
 */
 
 package frontend;

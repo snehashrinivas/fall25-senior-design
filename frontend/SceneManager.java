@@ -1,7 +1,7 @@
 
-/*
-Written by Rida Basit. RXB210086
+/**
 Handles switching between scenes and managing navigation within the application.
+ Written by Rida Basit. RXB210086
 */
 
 package frontend;
