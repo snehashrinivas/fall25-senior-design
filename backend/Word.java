@@ -4,14 +4,13 @@ package backend;
  * This class represents a single word within a sentence.
  * This class tracks how often a word appears within a text, as well as
  * how frequently it appears at the start or end of sentences.
- *
  * Written by Ezzah and Khushi
  */
 public class Word {
-    private String wordText;
-    private int startWordCount;
-    private int endWordCount;
-    private int frequency;
+    private final String wordText;
+    private final int startWordCount;
+    private final int endWordCount;
+    private final int frequency;
 
     /**
      * Constructor for creating a Word object.
@@ -20,6 +19,7 @@ public class Word {
      * @param startWordCount count of appearances at sentence start
      * @param endWordCount count of appearances at sentence end
      * @param frequency total frequency count
+     * Written by Ezzah and Khushi
      */
     public Word(String wordText, int startWordCount, int endWordCount, int frequency) {
         this.wordText = wordText;
@@ -34,6 +34,7 @@ public class Word {
      * Gets the total character content of this word.
      *
      * @return The word text
+     * Written by Ezzah and Khushi
      */
     public String getWordText() {
         return wordText;
@@ -43,6 +44,7 @@ public class Word {
      * Gets the count of how many times this word appears at the start of sentences.
      *
      * @return The start word count
+     * Written by Ezzah and Khushi
      */
     public int getStartWordCount() {
         return startWordCount;
@@ -52,6 +54,7 @@ public class Word {
      * Gets the count of how many times this word appears at the end of sentences.
      *
      * @return The end word count
+     * Written by Ezzah and Khushi
      */
     public int getEndWordCount() {
         return endWordCount;
@@ -61,18 +64,9 @@ public class Word {
      * Gets the total frequency of this word in the text.
      *
      * @return The frequency count
+     * Written by Ezzah and Khushi
      */
     public int getFrequency() {
         return frequency;
     }
-
-    // Setters
-    /**
-     * Sets the total frequency of this word.
-     *
-     * @param frequency The new frequency count
-     */
-    /*public void setFrequency(int frequency) {
-        this.frequency = frequency;
-    }*/
 }

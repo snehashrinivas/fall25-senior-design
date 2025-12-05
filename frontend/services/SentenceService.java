@@ -12,7 +12,7 @@ import java.util.List;
  * access the parsed data. The class is implemented as a Singleton — only one instance exists throughout the
  * application.
  *
- * Written by khushi
+ * Written by khushi and Ezzah
  */
 public class SentenceService {
     private static BigramProcessor processor;

@@ -4,10 +4,8 @@ package backend;
  * Cleaning words involves converting accented letters to their regular characters, removing miscellaneous
  * characters, converting words to lowercase. Lines are processed one at a time, split into tokens, cleaned,
  * and inserted into the database through the backend.DatabaseManager object.
- *
  * The main purpose of this program is to count the total number of words in the file, store word frequency counts,
  * and end of sentence/beginning of sentence frequency counts.
- *
  * written by Ezzah, Andersen, Khushi
  */
 
@@ -48,7 +46,7 @@ public class UpdatedPreProcessing {
     /**
      * Check if character is non-alphabetic, non-numerical, or non-punctuation
      * Passes uppercase, lowercase letters, punctuation, and numbers
-     * Not counting ',' ':' or ';' to not worry about grammatic structure of sentences
+     * Not counting ',' ':' or ';' to not worry about grammatical structure of sentences
      * @param myChar character being checked
      * @return preprocessed, lowercase version of input word that contains only digits and alphabetical letters
      * Written by Khushi Dubey
@@ -163,7 +161,7 @@ public class UpdatedPreProcessing {
      * while keeping track of words added
      * @param textFile   Scanner object of the text document to preprocess
      * @return           int of the number of words added to the database
-     * Written by Andersen Breyel
+     * Written by Andersen Breyel edited by Ezzah
      */
     private static int preprocess(Scanner textFile) throws SQLException {
         // track total number of words

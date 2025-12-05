@@ -6,7 +6,6 @@ package backend;
  *   - Starting word occurrences (how often a word begins a sentence)
  *   - Ending word occurrences (how often a word ends a sentence)
  *   - Word relationships (which words commonly follow other words)
- *
  * The class uses prepared statements for SQL queries and manages the db connection through
  * connect/disconnect methods.
  * written by Ezzah, Khushi, Sneha, and Andersen
@@ -20,11 +19,8 @@ import java.util.HashMap;
 public class DatabaseManager {
     // Database connection details --> change credentials here
     private static final String DB_URL = "jdbc:mysql://localhost:3306/SentenceBuilder";
-    // "jdbc:mysql://localhost:3306/sentencebuilderdb" khushi's url
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "your_new_password";
-    //"" Khushi's password
-    //"password"; //Sneha's password
 
     /**
      * Default constructor
