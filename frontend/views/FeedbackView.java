@@ -1,5 +1,5 @@
 /*
-Written by Rida Basit. RXB210086
+Written by Rida Basit, Sneha Shrinivas, and Khushi Dubey. RXB210086, sxs210371, kad210008
 Shows the final generated sentence or results after user interaction.
 */
 package frontend.views;
@@ -18,6 +18,13 @@ import javafx.scene.layout.VBox;
 
 public class FeedbackView {
 
+    /**
+     * Creates the Feedback view UI where users can see the generated sentence
+     * and provide a star rating.
+     * @param sentence The generated sentence to display.
+     * @return Parent node containing the Feedback view UI.
+     * Written by Rida Basit, Sneha Shrinivas, and Khushi Dubey.
+     */
     public static Parent create(String sentence) {
         // full background
         VBox root = new VBox();
@@ -48,6 +55,7 @@ public class FeedbackView {
         );
         lblSentence.setMaxWidth(420);
 
+        // rating prompt
         Label lbl2 = new Label("Rate this sentence:");
         lbl2.setStyle("-fx-font-size: 13; -fx-text-fill: " + Views.TEXT_MUTED + ";");
 
@@ -62,6 +70,7 @@ public class FeedbackView {
                 MainView.setCenter(HomeView.create(), "Sentence Builder - Home")
         );
 
+        // On finish, log the rating and go to Thank You view
         btnFinish.setOnAction(e -> {
             int rating = stars.getRating();
             System.out.println("User rated the sentence: " + rating + " stars");
@@ -72,6 +81,7 @@ public class FeedbackView {
         HBox buttonRow = new HBox(10, btnRegenerate, btnFinish);
         buttonRow.setAlignment(Pos.CENTER);
 
+        // assemble card
         VBox card = Views.card(
                 appTitle,
                 subtitle,

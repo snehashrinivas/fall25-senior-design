@@ -1,4 +1,4 @@
-/*
+/**
  * This class is to show the files that the user has uploaded during the session through the menu on the left side.
  * It also includes functionality to parse these files and add them to the backend for processing and generation.
  * Written by Sneha Shrinivas
@@ -20,6 +20,11 @@ public final class UploadStore {
 
     public static ObservableList<File> getImported() { return imported; }
 
+    /**
+     * Adds all uploaded files to the import list and send them to backend for preprocessing
+     * @param files
+     * Written by Sneha Shrinivas
+     */
     public static void addAll(Collection<File> files) {
         imported.addAll(files);
 

@@ -1,4 +1,4 @@
-/*
+/**
  * This class helps show the menu view of the application that can be expanded or collapsed.
  * It also manages the center content area where different views can be displayed.
  * We can access the menu from any of the other screens, so it is persistent throughout views of the application.
@@ -32,13 +32,18 @@ public class MainView {
     private static ToggleButton menuToggle;
     private static TitledPane importedPane;
 
+    /**
+     * Creates the main view with a header, collapsible sidebar, and center content area.
+     * @return Parent node representing the main view.
+     * Written by Sneha Shrinivas
+     */
     public static Parent create() {
         if (root != null) return root;
 
         root = new BorderPane();
         root.setStyle("-fx-background-color: " + Views.APP_BG + ";");
 
-        // ===== Header with Menu toggle =====
+        // Header with Menu toggle
         HBox header = new HBox(10);
         header.setPadding(new Insets(12, 16, 12, 16));
         header.setAlignment(Pos.CENTER_LEFT);
@@ -67,14 +72,14 @@ public class MainView {
 
         header.getChildren().addAll(menuToggle, title, spacer, subtitle);
 
-        // ===== Sidebar (collapsible) =====
+        // Sidebar (collapsible)
         side = buildSidebar(subtitle);
         root.setLeft(side);
 
-        // ===== Initial center content =====
+        // Initial center content
         setCenter(HomeView.create(), "Sentence Generation");
 
-        // ===== Wire header toggle and shortcuts =====
+        //  Wire header toggle and shortcuts
         menuToggle.setOnAction(e -> {
             if (menuToggle.isSelected()) {
                 root.setLeft(side);
@@ -91,7 +96,13 @@ public class MainView {
         return root;
     }
 
-    /** Build the left sidebar with collapsible sections. */
+    /**
+     * Builds the left sidebar with file upload and action buttons.
+     * @param subtitleLabel
+     * @return VBox representing the sidebar.
+     * Written by Sneha Shrinivas
+     */
+
     private static VBox buildSidebar(Label subtitleLabel) {
         VBox sideBox = new VBox(12);
         sideBox.setPadding(new Insets(12));
@@ -108,13 +119,14 @@ public class MainView {
                         "-fx-border-width: 1;"
         );
 
-        // ===== File Upload (collapsible) =====
+        // File Upload (collapsible)
         Button btnChoose = Views.secondaryButton("Choose Files…");
         Button btnUpload = Views.primaryButton("Upload");
         btnUpload.setDisable(true);
         HBox chooseRow = new HBox(8, btnChoose, btnUpload);
         chooseRow.setAlignment(Pos.CENTER_LEFT);
 
+        // Staging area for selected files
         ObservableList<File> staging = FXCollections.observableArrayList();
         ListView<File> stagingList = new ListView<>(staging);
         stagingList.setPlaceholder(new Label("No files selected."));
@@ -126,6 +138,7 @@ public class MainView {
             }
         });
 
+        // Staging area actions (remove, clear)
         Button btnRemove = Views.secondaryButton("Remove");
         Button btnClear  = Views.secondaryButton("Clear");
         HBox stageActions = new HBox(8, btnRemove, btnClear);
@@ -142,6 +155,7 @@ public class MainView {
                 stagingList,
                 stageActions
         );
+
         stagingBox.setPadding(new Insets(8));
         stagingBox.setStyle(
                 "-fx-border-color:#e5e7eb;" +
@@ -150,6 +164,7 @@ public class MainView {
                         "-fx-border-width:1;"
         );
 
+        // Assemble upload pane
         VBox uploadContent = new VBox(10, chooseRow, stagingBox);
         TitledPane uploadPane = new TitledPane("File Upload", uploadContent);
         uploadPane.setExpanded(false);
@@ -170,7 +185,7 @@ public class MainView {
         Label status = new Label();
         status.setStyle("-fx-text-fill:#16a34a; -fx-font-size:12;");
 
-        // ===== Imported Files =====
+        // Imported Files
         ListView<File> importedList = new ListView<>(UploadStore.getImported());
         importedList.setPlaceholder(new Label("No files uploaded."));
         importedList.setPrefHeight(120);
@@ -180,6 +195,7 @@ public class MainView {
                 setText(empty || f == null ? null : f.getName());
             }
         });
+        // Context menu to remove imported files
         importedList.setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.SECONDARY) {
                 File sel = importedList.getSelectionModel().getSelectedItem();
@@ -196,6 +212,7 @@ public class MainView {
         importedPane = new TitledPane("Imported Files", importedList);
         importedPane.setExpanded(false);
 
+        // Upload action
         btnUpload.setOnAction(e -> {
             if (!staging.isEmpty()) {
                 int n = staging.size();
@@ -209,6 +226,7 @@ public class MainView {
         Label actionsTitle = new Label("Actions");
         actionsTitle.setStyle("-fx-font-weight: bold; -fx-text-fill:" + Views.TEXT_DEFAULT + ";");
 
+        // Sentence Generation button from sidebar
         Button btnSentence = Views.primaryButton("Sentence Generation");
         btnSentence.setMaxWidth(Double.MAX_VALUE);
         btnSentence.setOnAction(e -> {
@@ -217,6 +235,7 @@ public class MainView {
             setCenter(HomeView.create(), "Sentence Builder - Home");
         });
 
+        // Assemble sidebar
         inner.getChildren().addAll(
                 uploadPane,
                 importedPane,
@@ -237,7 +256,12 @@ public class MainView {
         return sideBox;
     }
 
-    /** Swap the center content and update the subtitle in header. */
+    /**
+     * Sets the center content area with the given content and subtitle.
+     * @param content The content to display in the center area.
+     * @param subtitle The subtitle to display in the header.
+     * Written by Sneha Shrinivas
+     */
     public static void setCenter(Parent content, String subtitle) {
         if (root == null) create();
         StackPane wrapper = new StackPane(content);

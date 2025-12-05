@@ -22,9 +22,9 @@ public class DatabaseManager {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/SentenceBuilder";
     // "jdbc:mysql://localhost:3306/sentencebuilderdb" khushi's url
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "your_new_password";
+    private static final String DB_PASSWORD = //"your_new_password";
     //"" Khushi's password
-    // "password" Sneha's password
+    "password"; //Sneha's password
 
     /**
      * Default constructor

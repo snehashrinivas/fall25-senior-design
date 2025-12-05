@@ -1,6 +1,5 @@
-/*
-Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371
-edited by Ezzah eaq210000
+/**
+Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371, edited by Ezzah Qureshi eaq210000
 The main screen where the user starts building a sentence,
 now using a dropdown to select a starting word and then either selecting the options of sentence generation or
 word completion.
@@ -33,6 +32,12 @@ import java.util.List;
 
 public class HomeView {
 
+    /**
+     * Creates the Home view UI where users can select a starting word
+     * and choose the sentence generation algorithm.
+     * @return Parent node containing the Home view UI.
+     * Written by Rida Basit and Sneha Shrinivas, edited by Ezzah Qureshi.
+     */
     public static Parent create() {
         // full-screen background
         VBox root = new VBox();
@@ -63,11 +68,10 @@ public class HomeView {
 
         // Load top 10 starting words from the database
         List<String> startingWords = new ArrayList<>();
-        //DatabaseManager db = DatabaseManager.getInstance();
-        //startingWords = db.getTopStartingWords(10);
+
         startingWords = DatabaseManager.getTopStartingWords(10);
 
-        // If DB returned nothing, you can optionally fall back to a default list
+        // If DB returned nothing, default list fallback
         if (startingWords.isEmpty()) {
             startingWords = List.of("A", "Her", "His", "My",  "Our", "The", "Their", "This",  "Your");
         }
@@ -75,7 +79,7 @@ public class HomeView {
         // Alphabetize them for the dropdown
         Collections.sort(startingWords, String.CASE_INSENSITIVE_ORDER);
 
-        /// 2) Capitalize for display (so we see “He”, “I”, “My”, etc.)
+        // Capitalize for display purposes in dropdown
         List<String> displayWords = new ArrayList<>();
         for (String w : startingWords) {
             if (w == null || w.isBlank()) continue;
@@ -87,7 +91,7 @@ public class HomeView {
             }
         }
 
-        // Put the pretty versions into the dropdown
+        // Put the edited versions into the dropdown
         wordDropdown.getItems().setAll(displayWords);
 
         wordDropdown.setPromptText("Select your first word");
@@ -100,7 +104,7 @@ public class HomeView {
                         "-fx-padding: 4 10 4 10;"
         );
 
-        // ===== NEW: Algorithm Selection with Radio Buttons =====
+        // Algorithm Selection with Radio Buttons
         Label algorithmLabel = new Label("Choose generation algorithm:");
         algorithmLabel.setStyle(
                 "-fx-font-size: 13;" +
@@ -108,7 +112,7 @@ public class HomeView {
                         "-fx-text-fill: " + Views.TEXT_DEFAULT + ";"
         );
 
-        // Create ToggleGroup for radio buttons (only one can be selected at a time)
+        // Create ToggleGroup for radio buttons (mutually exclusive selection)
         ToggleGroup algorithmGroup = new ToggleGroup();
 
         // Create three radio buttons for each algorithm
@@ -128,7 +132,6 @@ public class HomeView {
         // Create a VBox to hold the radio buttons
         VBox radioBox = new VBox(8, radioWeighted, radioThreeRandom, radioTopOne);
         radioBox.setStyle("-fx-padding: 10; -fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-border-width: 1;");
-
 
         // primary actions (use shared button styles)
         Button btnGenerate = Views.primaryButton("Generate Sentence");

@@ -8,7 +8,7 @@ package backend;
  * - Use the transition probabilities to calculate
  * - Sort bigrams by their probability for word generation output
  *
- * Written Andersen, Sneha, Rida
+ * Written by Andersen, Sneha, Rida
  **/
 import java.util.*;
 import java.sql.*;

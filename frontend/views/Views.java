@@ -1,5 +1,5 @@
 /*
-Written by Rida Basit. RXB210086
+Written by Rida Basit and Sneha Shrinivas . RXB210086, sxs210371
 Holds shared helper methods for creating consistent UI elements
 */
 package frontend.views;
@@ -19,6 +19,12 @@ public class Views {
     public static final String TEXT_MUTED   = "#6b7280";   // gray text
     public static final String TEXT_DEFAULT = "#111827";   // dark text
 
+    /**
+     * Creates a consistently styled title label for screens.
+     * @param text
+     * @return the stylized label button
+     * Written by Sneha Shrinivas and Rida Basit
+     */
     // Creates a consistently styled title label for screens.
     public static Label title(String text) {
         Label t = new Label(text);
@@ -67,7 +73,12 @@ public class Views {
         return b;
     }
 
-    // Secondary / neutral button (outlined)
+    /**
+     * Creates a secondary button with outlined styling.
+     * @param text the button text
+     * @return the stylized button
+     * Written by Sneha Shrinivas
+     */
     public static Button secondaryButton(String text) {
         Button b = new Button(text);
         b.setStyle(
@@ -110,7 +121,12 @@ public class Views {
         return b;
     }
 
-    // Card container used in the center of the screen
+    /**
+     * Creates a card container in the center of the screen with consistent styling.
+     * @param children
+     * @return the styled VBox card
+     * Written by Sneha Shrinivas
+     */
     public static VBox card(Node... children) {
         VBox card = new VBox(12);
         card.getChildren().addAll(children);

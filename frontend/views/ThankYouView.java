@@ -1,4 +1,4 @@
-/*
+/**
 Written by Rida Basit and Sneha Shrinivas. RXB210086, sxs210371
 Displays a thank you or completion message
 after finishing sentence generation or feedback.
@@ -15,6 +15,11 @@ import javafx.scene.layout.VBox;
 
 public class ThankYouView {
 
+    /**
+     * Creates the Thank You page view UI.
+     * @return VBox containing the Thank You message and navigation button.
+     * Written by Rida Basit and Sneha Shrinivas.
+     */
     public static Parent create() {
         VBox root = new VBox();
         root.setAlignment(Pos.CENTER);
@@ -23,6 +28,7 @@ public class ThankYouView {
                         "-fx-padding: 32;"
         );
 
+        // Title and messages to be displayed
         Label title = Views.title("Sentence Builder");
         Label msg   = new Label("Thank you for using Sentence Builder!");
         msg.setStyle("-fx-font-size: 16; -fx-text-fill: " + Views.TEXT_DEFAULT + ";");
@@ -36,6 +42,7 @@ public class ThankYouView {
                 MainView.setCenter(HomeView.create(), "Sentence Generation")
         );
 
+        // Assemble card
         VBox card = Views.card(
                 title,
                 msg,
