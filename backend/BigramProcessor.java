@@ -151,16 +151,6 @@ public class BigramProcessor {
         return sortedList;
     }
 
-    // New method to allow frontend calls:
-    public String generateFromPrefix(String prefixSentence, int n, boolean smoothing) {
-        if (prefixSentence == null || prefixSentence.isEmpty()) {
-            return "Please enter a starting word.";
-        }
-
-        String sentence = generateSentenceWeighted(prefixSentence, n, smoothing);
-        return sentence;
-    }
-
     /**
      * Function to pick a random word based on probability weights
      * @param candidates HashMap of words and their probabilities

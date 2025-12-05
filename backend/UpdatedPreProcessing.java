@@ -283,21 +283,15 @@ public class UpdatedPreProcessing {
         return count;
     }
 
-    /*
-    This method uses processSingleFile to process a file that is imported from the frontend GUI
-    @param file File object representing the text file to be processed
-    Written by Sneha Shrinivas
+    /**
+     * This method uses processSingleFile to process a file that is imported from the frontend GUI
+     * @param file File object representing the text file to be processed
+     * Written by Sneha Shrinivas edited by ezzah
      */
     public static void processFileFromGui(File file) {
         try {
             // Get or create DB connection
-            //DatabaseManager dbManager = DatabaseManager.getInstance();
             DatabaseManager dbManager = new DatabaseManager();
-
-            /*if (!dbManager.isConnected()) {
-                System.err.println("Could not connect to DB.");
-                return;
-            }*/
 
             // Initialize static conn/dbManager fields
             new UpdatedPreProcessing(dbManager);
@@ -314,17 +308,21 @@ public class UpdatedPreProcessing {
         }
     }
 
-    /*
-    Method written to process a single file that is imported from the frontend - helper to processFileFromGui
-    @param dbManager DatabaseManager object to interact with the database
-    @param file File object representing the text file to be processed
-    @throws SQLException if a database access error occurs
-    Written by Sneha Shrinivas
+    /**
+     * Method written to process a single file that is imported from the frontend - helper to processFileFromGui
+     * @param dbManager DatabaseManager object to interact with the database
+     * @param file File object representing the text file to be processed
+     * @throws SQLException if a database access error occurs
+     * Written by Sneha Shrinivas edited by ezzah
      */
     public static void processSingleFile(DatabaseManager dbManager, File file) throws SQLException {
+        // Load the accents file
         Scanner asciiFile = importFile("accents.txt");
 
+        // Open the file to be processed
         Scanner currentFile = importFile(file.getAbsolutePath());
+
+        // Check if file was able to be opened
         if (currentFile == null) {
             System.out.println("File not found: " + file.getAbsolutePath());
             if (asciiFile != null) asciiFile.close();
@@ -333,13 +331,16 @@ public class UpdatedPreProcessing {
 
         int fileWordCount = 0;
         try {
-            //fileWordCount = preprocess(currentFile, asciiFile);
-            //dbManager.insertFileMetadata(file.getName(), fileWordCount);
-
+            // Preprocess the file and return word count
             fileWordCount = preprocess(currentFile);
+
+            // Create a Document object to store file metadata
             Document doc = new Document(file.getName(), fileWordCount);
+
+            // Insert the file metadata into the database
             dbManager.insertFileMetadata(doc);
 
+            // Print out word count
             System.out.println("Finished processing " + file.getName()
                     + " (word count = " + fileWordCount + ")");
         } catch (Exception e) {

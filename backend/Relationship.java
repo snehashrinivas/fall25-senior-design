@@ -3,6 +3,8 @@ package backend;
  * This class represents a relationship between two consecutive words in a sentence.
  * It tracks the frequency of a specific word following another word, which is vital to
  * our autocomplete and sentence generation algorithms.
+ *
+ * written by Ezzah and Khushi
  */
 public class Relationship {
     private int currentWordID;
@@ -47,42 +49,6 @@ public class Relationship {
      */
     public int getCombinationCount() {
         return combinationCount;
-    }
-
-    // Setters
-    /**
-     * Sets the ID of the current word.
-     *
-     * @param currentWordId The new current word ID
-     */
-    public void setCurrentWordID(int currentWordId) {
-        this.currentWordID = currentWordId;
-    }
-
-    /**
-     * Sets the ID of the next word.
-     *
-     * @param nextWordID The new next word ID
-     */
-    public void setNextWordID(int nextWordID) {
-        this.nextWordID = nextWordID;
-    }
-
-    /**
-     * Sets the combination count for this word pair.
-     *
-     * @param combinationCount The new combination count
-     */
-    public void setCombinationCount(int combinationCount) {
-        this.combinationCount = combinationCount;
-    }
-
-    /**
-     * Increments the combination count by 1.
-     * Call this method each time this word pair is encountered in the text.
-     */
-    public void incrementCombinationCount() {
-        this.combinationCount++;
     }
 }
 

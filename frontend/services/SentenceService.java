@@ -50,38 +50,6 @@ public class SentenceService {
     }
 
     /**
-     * Generate a sentence starting with the given prefix word
-     * @param prefix The first word of the sentence
-     * @return Generated sentence as a String
-     * Written by Khushi Dubey
-     */
-    /*public String generateSentence(String prefix) {
-        if (prefix == null || prefix.trim().isEmpty()) {
-            return "Error: Please enter a starting word.";
-        }
-
-        try {
-            // Clean up the prefix (trim whitespace, convert to proper format)
-            String cleanPrefix = prefix.trim();
-
-            // Generate sentence with max 10 words, using smoothing
-            String result = BigramProcessor.generateSentenceTopOne(cleanPrefix, 10, true);
-
-            // Check if generation was successful
-            if (result == null || result.trim().isEmpty()) {
-                return "Error: Could not generate sentence. Word might not be in database.";
-            }
-
-            return result.trim();
-
-        } catch (Exception e) {
-            System.err.println("Error generating sentence: " + e.getMessage());
-            e.printStackTrace();
-            return "Error: Failed to generate sentence. Please try another word.";
-        }
-    }*/
-
-    /**
      * Generate a sentence using the weighted (probability-based) algorithm
      * @param prefix The first word of the sentence
      * @return Generated sentence as a String
@@ -175,16 +143,6 @@ public class SentenceService {
             e.printStackTrace();
             return "Error: Failed to generate sentence. Please try another word.";
         }
-    }
-
-    /**
-     * Generate a sentence (default: uses top one algorithm)
-     * @param prefix The first word of the sentence
-     * @return Generated sentence as a String
-     * Written by Khushi and Ezzah
-     */
-    public String generateSentence(String prefix) {
-        return generateSentenceTopOne(prefix);
     }
 
     /**

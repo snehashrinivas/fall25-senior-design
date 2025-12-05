@@ -1,6 +1,11 @@
 package backend;
 
-import backend.DatabaseManager;
+/**
+ * Main program that runs the preprocessing of text
+ * creates an instance of database manager and updatedpreprocessing
+ *
+ * written by Ezzah and Khushi
+ */
 
 public class PreProcessMain {
     public static void main(String[] args) {

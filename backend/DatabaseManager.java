@@ -1,5 +1,5 @@
 package backend;
-/*
+/**
  * This class manages database operations for the Sentence Builder
  * It handles inserting words and their relationships into a MySQL database to track:
  *   - Word frequencies (how often each word appears)
@@ -32,8 +32,6 @@ public class DatabaseManager {
      */
     public DatabaseManager() { }
 
-
-    // close connection
     /**
      * Helper method to create a new database connection
      * @return a new Connection object
@@ -50,41 +48,6 @@ public class DatabaseManager {
         } catch (ClassNotFoundException e) {
             throw new SQLException("MySQL JDBC Driver not found: " + e.getMessage());
         }
-    }
-
-    /**
-     * Checks if a word ends a sentence
-     * @param unigram the word to check
-     * @return true if the word ends a sentence, false otherwise
-     *
-     * Written by Andersen, Khushi, and Ezzah
-     */
-    public static boolean wordEndsSentence(String unigram) {
-        // SQL query to get the ending word occurrence count for the given word
-        String wordEOS = """
-                SELECT ending_word_occurences AS eos FROM Words WHERE word = ? 
-                """;
-
-        // get connection and prepare statement
-        try (Connection conn = getConnection();
-             PreparedStatement wordEOSStmt = conn.prepareStatement(wordEOS)) {
-
-            // Set the word parameter in the prepared statement and execute query
-            wordEOSStmt.setString(1, unigram);
-            ResultSet rs = wordEOSStmt.executeQuery();
-
-            // If a result exists, check if the ending count is greater than 0, and return if it does
-            if (rs.next()) {
-                int eosValue = rs.getInt("eos");
-                return eosValue > 0;
-            } else {
-                // Print error if word not found in database
-                System.out.println("Error for finding unigram occurence" + unigram);
-            }
-        } catch (SQLException e) {
-            System.err.println("SQL error in wordEndsSentence: " + e.getMessage());
-        }
-        return false;
     }
 
     /**
@@ -191,6 +154,12 @@ public class DatabaseManager {
         return words;
     }
 
+    /**
+     * inserts word object fields like frequency, start and ending word frequency, into the database table
+     * @param wordPart Instance of word object
+     * @throws SQLException
+     * Written by Ezzah Qureshi, Khushi Dubey, and Andersen Breyel
+     */
     public void insertWord(Word wordPart) throws SQLException {
         String insertWordSQL = """
                     INSERT INTO Words (word, word_frequency, starting_word_occurences, ending_word_occurences)
@@ -252,6 +221,7 @@ public class DatabaseManager {
      * Load all words directly into HashMap with one database query
      *
      * @return HashMap of all words with their properties
+     * written by sneha
      */
     public static HashMap<String, Word> loadAllWordsOptimized() {
         // initialize hash map and statement
@@ -291,6 +261,7 @@ public class DatabaseManager {
      * Load all bigrams directly into HashMap with one database query
      *
      * @return HashMap mapping "word1 word2" to combination count
+     * written by sneha
      */
     public static HashMap<String, Integer> loadAllBigramsOptimized() {
         HashMap<String, Integer> bigramHashMap = new HashMap<>();

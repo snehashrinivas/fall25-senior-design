@@ -1,11 +1,11 @@
 package backend;
 
-import java.sql.ResultSet;
-
 /**
  * This class represents a single word within a sentence.
  * This class tracks how often a word appears within a text, as well as
  * how frequently it appears at the start or end of sentences.
+ *
+ * Written by Ezzah and Khushi
  */
 public class Word {
     private String wordText;
@@ -67,40 +67,12 @@ public class Word {
     }
 
     // Setters
-
-    /**
-     * Sets content of this word.
-     *
-     * @param wordText The new word text
-     */
-    public void setWordText(String wordText) {
-        this.wordText = wordText;
-    }
-
-    /**
-     * Sets the start word count.
-     *
-     * @param startWordCount The new start word count
-     */
-    public void setStartWordCount(int startWordCount) {
-        this.startWordCount = startWordCount;
-    }
-
-    /**
-     * Sets the end word count.
-     *
-     * @param endWordCount The new end word count
-     */
-    public void setEndWordCount(int endWordCount) {
-        this.endWordCount = endWordCount;
-    }
-
     /**
      * Sets the total frequency of this word.
      *
      * @param frequency The new frequency count
      */
-    public void setFrequency(int frequency) {
+    /*public void setFrequency(int frequency) {
         this.frequency = frequency;
-    }
+    }*/
 }
